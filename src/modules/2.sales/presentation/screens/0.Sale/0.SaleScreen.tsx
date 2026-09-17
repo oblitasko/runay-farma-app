@@ -5,6 +5,7 @@ import { EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatPen, useBreakpoint } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
+import { productPackLabel } from '@/src/modules/1.products/domain/entities';
 import { useProductsStore } from '@/src/modules/1.products/domain/usecases';
 import { useCashRegisterStore } from '@/src/modules/3.cash-register/domain/usecases';
 import { useInventoryStore } from '@/src/modules/7.inventory/domain/usecases';
@@ -106,7 +107,7 @@ export function SaleScreen() {
                   <View style={styles.cardCopy}>
                     <Text style={styles.cardTitle}>{item.name}</Text>
                     <Text style={styles.cardMeta}>
-                      {item.barcode || item.sku || 'Sin código'} · Stock {sellable}
+                      {productPackLabel(item)} · {item.barcode || item.sku || 'Sin código'} · Stock {sellable}
                     </Text>
                     {row?.isBelowMin ? <Text style={styles.alert}>Bajo mínimo</Text> : null}
                     {row?.hasExpiring30 ? <Text style={styles.warn}>Hay lote por vencer</Text> : null}

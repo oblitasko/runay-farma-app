@@ -37,7 +37,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
 
   onCreate: async (input) => {
     const product = await ProductsPort.create(input);
-    set({ items: [...get().items, product].sort((a, b) => a.name.localeCompare(b.name, 'es')) });
+    set({ items: [...get().items, product].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, 'es')) });
     return product;
   },
 

@@ -1,3 +1,4 @@
+import { EncodingType, File, Paths } from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams } from 'expo-router';
@@ -56,9 +57,20 @@ export function IssueInvoiceScreen() {
         await Print.printAsync({ html });
         return;
       }
-      const file = await Print.printToFileAsync({ html });
+      const printed = await Print.printToFileAsync({ html, base64: true });
+      if (!printed.base64) {
+        throw new Error('No se pudo generar el PDF');
+      }
+      const filename = `${invoiceLabel(current)}.pdf`;
+      const dest = new File(Paths.cache, filename);
+      dest.create({ overwrite: true });
+      dest.write(printed.base64, { encoding: EncodingType.Base64 });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(file.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+        await Sharing.shareAsync(dest.uri, {
+          mimeType: 'application/pdf',
+          UTI: 'com.adobe.pdf',
+          dialogTitle: filename,
+        });
         return;
       }
       await Print.printAsync({ html });

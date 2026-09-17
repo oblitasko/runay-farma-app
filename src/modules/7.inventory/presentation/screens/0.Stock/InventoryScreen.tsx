@@ -89,7 +89,7 @@ function StockCard({ row, onPress }: { row: StockRow; onPress: () => void }) {
         <View style={styles.copy}>
           <Text style={styles.name}>{row.name}</Text>
           <Text style={styles.meta}>
-            {row.barcode || row.sku || 'Sin código'} · Mín. {row.minStock}
+            {row.barcode || row.sku || 'Sin código'} · {row.presentation} · {row.sunatUnitCode} · Mín. {row.minStock}
           </Text>
           {row.nearestExpiry ? <Text style={styles.meta}>Próximo vencimiento {formatDate(row.nearestExpiry)}</Text> : null}
           {row.isBelowMin ? <Text style={styles.alert}>Bajo stock mínimo</Text> : null}

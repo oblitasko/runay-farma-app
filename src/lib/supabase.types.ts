@@ -46,6 +46,10 @@ export type Database = {
           name: string;
           sale_price: number;
           is_active: boolean;
+          min_stock: number;
+          sunat_unit_code: string;
+          presentation: string;
+          sort_order: number;
           created_at: string;
           updated_at: string;
         };
@@ -57,6 +61,10 @@ export type Database = {
           name: string;
           sale_price: number;
           is_active?: boolean;
+          min_stock?: number;
+          sunat_unit_code?: string;
+          presentation?: string;
+          sort_order?: number;
         };
         Update: {
           sku?: string | null;
@@ -64,6 +72,10 @@ export type Database = {
           name?: string;
           sale_price?: number;
           is_active?: boolean;
+          min_stock?: number;
+          sunat_unit_code?: string;
+          presentation?: string;
+          sort_order?: number;
         };
       };
       payment_methods: {

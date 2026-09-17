@@ -16,6 +16,8 @@ export type StockRow = {
   salePrice: number;
   minStock: number;
   isActive: boolean;
+  presentation: string;
+  sunatUnitCode: string;
   onHand: number;
   sellable: number;
   nearestExpiry: string | null;

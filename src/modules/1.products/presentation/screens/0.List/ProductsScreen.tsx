@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ButtonComponent, EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatPen, parseMoneyInput } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
 import { useInventoryStore } from '@/src/modules/7.inventory/domain/usecases';
-import type { Product } from '../../../domain/entities';
+import type { Product, ProductPresentation, SunatUnitCode } from '../../../domain/entities';
+import { PRODUCT_PRESENTATIONS, SUNAT_UNITS, productPackLabel } from '../../../domain/entities';
 import { useProductsStore } from '../../../domain/usecases';
 
 type FormState = {
@@ -15,9 +16,20 @@ type FormState = {
   sku: string;
   min_stock: string;
   is_active: boolean;
+  presentation: ProductPresentation;
+  sunat_unit_code: SunatUnitCode;
 };
 
-const emptyForm: FormState = { name: '', sale_price: '', barcode: '', sku: '', min_stock: '0', is_active: true };
+const emptyForm: FormState = {
+  name: '',
+  sale_price: '',
+  barcode: '',
+  sku: '',
+  min_stock: '0',
+  is_active: true,
+  presentation: 'unidad',
+  sunat_unit_code: 'NIU',
+};
 
 export function ProductsScreen() {
   const profile = useAuthStore((state) => state.profile);
@@ -58,6 +70,8 @@ export function ProductsScreen() {
       sku: product.sku ?? '',
       min_stock: String(product.min_stock ?? 0),
       is_active: product.is_active,
+      presentation: product.presentation,
+      sunat_unit_code: product.sunat_unit_code,
     });
     setFormError(null);
     setFormOpen(true);
@@ -81,6 +95,8 @@ export function ProductsScreen() {
         sku: form.sku,
         min_stock: isOwner ? parseMoneyInput(form.min_stock) : undefined,
         is_active: form.is_active,
+        presentation: form.presentation,
+        sunat_unit_code: form.sunat_unit_code,
       };
       if (editing) {
         await onUpdate(editing.id, payload);
@@ -130,8 +146,8 @@ export function ProductsScreen() {
               <View style={styles.copy}>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.meta}>
-                  {item.barcode || item.sku || 'Sin código'} {!item.is_active ? '· Inactivo' : ''} · Stock{' '}
-                  {stockById[item.id]?.sellable ?? 0}
+                  {productPackLabel(item)} · {item.barcode || item.sku || 'Sin código'} {!item.is_active ? '· Inactivo' : ''} ·
+                  Stock {stockById[item.id]?.sellable ?? 0}
                   {item.min_stock ? ` · Mín. ${item.min_stock}` : ''}
                 </Text>
               </View>
@@ -145,8 +161,39 @@ export function ProductsScreen() {
         <View style={styles.overlay}>
           <View style={styles.sheet}>
             <Text style={styles.sheetTitle}>{editing ? 'Editar producto' : 'Nuevo producto'}</Text>
+            <ScrollView style={styles.sheetScroll} keyboardShouldPersistTaps="handled">
             <View style={styles.form}>
               <InputComponent label="Nombre" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
+              <Text style={styles.section}>Presentación</Text>
+              <View style={styles.chips}>
+                {PRODUCT_PRESENTATIONS.map((item) => {
+                  const selected = form.presentation === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      style={[styles.chip, selected ? styles.chipOn : styles.chipOff]}
+                      onPress={() => setForm({ ...form, presentation: item.id })}
+                    >
+                      <Text style={selected ? styles.chipOnText : styles.chipOffText}>{item.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text style={styles.section}>Unidad SUNAT</Text>
+              <View style={styles.chips}>
+                {SUNAT_UNITS.map((item) => {
+                  const selected = form.sunat_unit_code === item.code;
+                  return (
+                    <Pressable
+                      key={item.code}
+                      style={[styles.chip, selected ? styles.chipOn : styles.chipOff]}
+                      onPress={() => setForm({ ...form, sunat_unit_code: item.code })}
+                    >
+                      <Text style={selected ? styles.chipOnText : styles.chipOffText}>{item.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
               <InputComponent
                 label="Precio de venta (S/)"
                 value={form.sale_price}
@@ -178,6 +225,7 @@ export function ProductsScreen() {
               <ButtonComponent label="Guardar" onPress={save} loading={saving} />
               <ButtonComponent variant="ghost" label="Cancelar" onPress={() => setFormOpen(false)} />
             </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -209,7 +257,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   sheetTitle: { marginBottom: space.lg, fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
+  sheetScroll: { maxHeight: 520 },
   form: { gap: space.md },
+  section: { fontWeight: '600', color: colors.text },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  chip: { borderRadius: radius.full, paddingHorizontal: space.md, paddingVertical: 4 },
+  chipOn: { backgroundColor: colors.brand },
+  chipOff: { backgroundColor: '#F1F5F9' },
+  chipOnText: { color: colors.white },
+  chipOffText: { color: '#334155' },
   toggle: { fontSize: fontSize.sm, fontWeight: '500', color: colors.brand },
   formError: { fontSize: fontSize.sm, color: colors.danger },
 });

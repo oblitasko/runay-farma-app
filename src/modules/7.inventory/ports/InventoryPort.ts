@@ -70,6 +70,8 @@ export const InventoryPort = {
         salePrice: Number(product.sale_price),
         minStock,
         isActive: product.is_active,
+        presentation: product.presentation,
+        sunatUnitCode: product.sunat_unit_code,
         onHand,
         sellable,
         nearestExpiry,
