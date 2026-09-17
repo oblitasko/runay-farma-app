@@ -1,5 +1,5 @@
 export const colors = {
-  brand: '#F93B2A',
+  brand: '#ff0434',
   brandDark: '#C42A1C',
   brandLight: '#FDE8E6',
   brandMuted: '#F5A8A1',
@@ -10,7 +10,7 @@ export const colors = {
   textSubtle: '#94A3B8',
   border: '#E2E8F0',
   danger: '#DC2626',
-  warningBg: '#FFFBEB',
+  warningBg: '#FFDB4D',
   warningText: '#78350F',
   warningBody: '#92400E',
   overlay: 'rgba(0,0,0,0.4)',

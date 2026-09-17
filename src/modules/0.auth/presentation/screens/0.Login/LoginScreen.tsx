@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { ButtonComponent, ConfigBanner, InputComponent } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
@@ -27,93 +28,115 @@ export function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.card}>
+    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.hero}>
             <Image
-              source={require('@/assets/icon.png')}
+              source={require('@/assets/splash-icon.png')}
               style={styles.logo}
               accessibilityLabel="RUNAY"
             />
-            <Text style={styles.title}>RUNAY FARMA</Text>
-            <Text style={styles.subtitle}>Punto de venta para boticas</Text>
+            <Text style={styles.tagline}>GESTIÓN DE BOTICAS</Text>
           </View>
 
-          {!configured ? <ConfigBanner /> : null}
+          <View style={styles.sheet}>
+            <View style={styles.form}>
+              <Text style={styles.modeTitle}>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
 
-          {mode === 'register' ? (
-            <View style={styles.field}>
-              <InputComponent label="Nombre" value={fullName} onChangeText={setFullName} autoCapitalize="words" />
+              {!configured ? <ConfigBanner /> : null}
+
+              {mode === 'register' ? (
+                <View style={styles.field}>
+                  <InputComponent label="Nombre" value={fullName} onChangeText={setFullName} autoCapitalize="words" />
+                </View>
+              ) : null}
+
+              <View style={styles.field}>
+                <InputComponent
+                  label="Correo"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+              <View style={styles.password}>
+                <InputComponent label="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
+              </View>
+
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+
+              <ButtonComponent
+                label={mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+                onPress={submit}
+                loading={loading.status === 'loading'}
+                disabled={!configured}
+              />
+
+              <View style={styles.switchMode}>
+                <ButtonComponent
+                  variant="ghost"
+                  label={mode === 'login' ? 'Crear una cuenta' : 'Ya tengo cuenta'}
+                  onPress={() => {
+                    clearError();
+                    setMode(mode === 'login' ? 'register' : 'login');
+                  }}
+                />
+              </View>
             </View>
-          ) : null}
-
-          <View style={styles.field}>
-            <InputComponent
-              label="Correo"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
           </View>
-          <View style={styles.password}>
-            <InputComponent label="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
-          </View>
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <ButtonComponent
-            label={mode === 'login' ? 'Entrar' : 'Crear cuenta'}
-            onPress={submit}
-            loading={loading.status === 'loading'}
-            disabled={!configured}
-          />
-
-          <ButtonComponent
-            variant="ghost"
-            label={mode === 'login' ? 'Crear una cuenta' : 'Ya tengo cuenta'}
-            onPress={() => {
-              clearError();
-              setMode(mode === 'login' ? 'register' : 'login');
-            }}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: space.xl, paddingVertical: 40 },
-  card: {
-    width: '100%',
-    maxWidth: 448,
-    alignSelf: 'center',
-    borderRadius: radius.xl,
+  screen: { flex: 1, backgroundColor: colors.brand },
+  flex: { flex: 1 },
+  scroll: { flexGrow: 1 },
+  hero: {
+    alignItems: 'center',
+    paddingHorizontal: space.xl,
+    paddingTop: space.xl,
+    paddingBottom: space.xxl,
+  },
+  logo: { height: 120, width: 220 },
+  brand: {
+    marginTop: space.md,
+    fontSize: fontSize.hero,
+    fontWeight: '700',
+    letterSpacing: 6,
+    color: colors.white,
+  },
+  tagline: {
+    marginTop: space.xs,
+    fontSize: fontSize.sm,
+    color: colors.white,
+    opacity: 0.85,
+  },
+  sheet: {
+    flexGrow: 1,
     backgroundColor: colors.card,
-    padding: space.xl,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    paddingHorizontal: space.xl,
+    paddingTop: space.xl,
+    paddingBottom: space.xxl,
   },
-  hero: { marginBottom: space.xl, alignItems: 'center' },
-  logo: {
-    marginBottom: space.md,
-    height: 72,
-    width: 72,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
+  form: { width: '100%', maxWidth: 448, alignSelf: 'center' },
+  modeTitle: {
+    marginBottom: space.lg,
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.text,
   },
-  title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
-  subtitle: { marginTop: space.xs, fontSize: fontSize.sm, color: colors.textMuted },
   field: { marginBottom: space.md },
   password: { marginBottom: space.lg },
   error: { marginBottom: space.md, fontSize: fontSize.sm, color: colors.danger },
+  switchMode: { marginTop: space.sm },
 });
