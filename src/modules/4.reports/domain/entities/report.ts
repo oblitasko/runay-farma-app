@@ -11,3 +11,29 @@ export type DailyReport = {
   byMethod: MethodTotal[];
   cashTotal: number;
 };
+
+export type ProductTotal = {
+  productId: string;
+  name: string;
+  quantity: number;
+  total: number;
+};
+
+export type StoreTotal = {
+  storeId: string;
+  storeName: string;
+  salesCount: number;
+  total: number;
+};
+
+export type PeriodReport = {
+  fromISO: string;
+  toISO: string;
+  days: number;
+  salesCount: number;
+  total: number;
+  averageTicket: number;
+  byMethod: MethodTotal[];
+  topProducts: ProductTotal[];
+  byStore: StoreTotal[];
+};

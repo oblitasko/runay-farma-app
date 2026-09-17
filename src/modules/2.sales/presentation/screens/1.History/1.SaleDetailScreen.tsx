@@ -1,15 +1,17 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ScreenHeader } from '@/src/modules/_shared/components';
+import { ButtonComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatDateTime, formatPen } from '@/src/modules/_shared/utils';
+import { useInvoicingNavigation } from '@/src/modules/8.invoicing/domain/usecases';
 import { paymentMethodInfo } from '../../../domain/entities';
 import { useSalesStore } from '../../../domain/usecases';
 
 export function SaleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { selectedSale, onLoadSale } = useSalesStore();
+  const { goToInvoice } = useInvoicingNavigation();
 
   useEffect(() => {
     if (id) void onLoadSale(id);
@@ -42,6 +44,9 @@ export function SaleDetailScreen() {
         </View>
       ))}
       <Text style={styles.total}>{formatPen(Number(selectedSale.total))}</Text>
+      <View style={styles.invoiceAction}>
+        <ButtonComponent label="Emitir / ver boleta" onPress={() => goToInvoice(selectedSale.id)} />
+      </View>
     </ScrollView>
   );
 }
@@ -64,4 +69,5 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   section: { marginBottom: space.sm, marginTop: space.lg, fontWeight: '600', color: colors.text },
   total: { marginTop: space.lg, textAlign: 'right', fontSize: fontSize.xl, fontWeight: '700', color: colors.brand },
+  invoiceAction: { marginTop: space.lg },
 });

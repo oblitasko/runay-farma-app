@@ -1,16 +1,15 @@
-import { limaDateISO } from '@/src/modules/_shared/utils';
+import { addLimaDays, limaDateISO } from '@/src/modules/_shared/utils';
 import { ProductsPort } from '@/src/modules/1.products/ports';
+import { SalesPort } from '@/src/modules/2.sales/ports';
 import { InventoryApiAdapter } from '../adapters';
-import type { Lot, StockRow } from '../domain/entities';
+import type { Lot, RestockSuggestion, StockRow } from '../domain/entities';
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
 function addDays(iso: string, days: number) {
-  const date = new Date(`${iso}T12:00:00-05:00`);
-  date.setDate(date.getDate() + days);
-  return date.toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  return addLimaDays(iso, days);
 }
 
 type LotRow = {
@@ -79,5 +78,44 @@ export const InventoryPort = {
         hasExpired: productLots.some((lot) => lot.expires_on < today && lot.quantity_on_hand > 0),
       };
     });
+  },
+
+  alertCount(stock: StockRow[]) {
+    return stock.filter((row) => row.isBelowMin || row.hasExpiring30 || row.hasExpired).length;
+  },
+
+  async suggestRestock(organizationId: string, storeId: string, coverDays = 7): Promise<RestockSuggestion[]> {
+    const lookback = 30;
+    const toISO = limaDateISO();
+    const fromISO = addLimaDays(toISO, -(lookback - 1));
+    const [stock, sales] = await Promise.all([
+      InventoryPort.listStock(organizationId, storeId),
+      SalesPort.listSalesRange(storeId, fromISO, toISO),
+    ]);
+    const sold = new Map<string, { name: string; quantity: number }>();
+    for (const sale of sales.filter((item) => item.status === 'completed')) {
+      for (const item of sale.sale_items ?? []) {
+        const current = sold.get(item.product_id) ?? { name: item.product_name, quantity: 0 };
+        current.quantity += Number(item.quantity);
+        sold.set(item.product_id, current);
+      }
+    }
+
+    return stock
+      .filter((row) => row.isActive)
+      .map((row) => {
+        const qty = sold.get(row.productId)?.quantity ?? 0;
+        const avgDaily = qty / lookback;
+        const suggested = Math.max(0, Math.ceil(avgDaily * coverDays - row.sellable));
+        return {
+          productId: row.productId,
+          name: row.name,
+          sellable: row.sellable,
+          avgDaily: Math.round(avgDaily * 100) / 100,
+          suggested,
+        };
+      })
+      .filter((row) => row.suggested > 0)
+      .sort((a, b) => b.suggested - a.suggested);
   },
 };

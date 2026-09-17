@@ -8,5 +8,6 @@ export function useInventoryNavigation() {
       ),
     goToLots: (productId: string) => router.push(`/(app)/inventario/${productId}` as never),
     goToExpirations: () => router.push('/(app)/vencimientos' as never),
+    goToAlerts: () => router.push('/(app)/alertas' as never),
   };
 }

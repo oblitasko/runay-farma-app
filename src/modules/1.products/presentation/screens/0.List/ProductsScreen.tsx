@@ -21,6 +21,7 @@ const emptyForm: FormState = { name: '', sale_price: '', barcode: '', sku: '', m
 
 export function ProductsScreen() {
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const isOwner = profile?.role === 'owner';
   const { items, search, setSearch, onLoad, onCreate, onUpdate, loading, error } = useProductsStore();
   const { stock, onLoadStock } = useInventoryStore();
@@ -35,10 +36,10 @@ export function ProductsScreen() {
     if (profile?.organization_id) {
       void onLoad(profile.organization_id);
     }
-    if (profile?.organization_id && profile.store_id) {
-      void onLoadStock(profile.organization_id, profile.store_id);
+    if (profile?.organization_id && activeStoreId) {
+      void onLoadStock(profile.organization_id, activeStoreId);
     }
-  }, [profile?.organization_id, profile?.store_id, onLoad, onLoadStock]);
+  }, [profile?.organization_id, activeStoreId, onLoad, onLoadStock]);
 
   const openCreate = () => {
     setEditing(null);

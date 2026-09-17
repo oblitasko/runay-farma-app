@@ -9,13 +9,13 @@ import { useInventoryStore } from '../../../domain/usecases';
 
 export function LotsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const { lots, onLoadLots, loading } = useInventoryStore();
   const today = limaDateISO();
 
   useEffect(() => {
-    if (profile?.store_id && id) void onLoadLots(profile.store_id, id);
-  }, [profile?.store_id, id, onLoadLots]);
+    if (activeStoreId && id) void onLoadLots(activeStoreId, id);
+  }, [activeStoreId, id, onLoadLots]);
 
   const title = lots[0]?.product_name ?? 'Lotes';
 

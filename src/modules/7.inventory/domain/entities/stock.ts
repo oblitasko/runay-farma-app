@@ -23,3 +23,11 @@ export type StockRow = {
   hasExpiring30: boolean;
   hasExpired: boolean;
 };
+
+export type RestockSuggestion = {
+  productId: string;
+  name: string;
+  sellable: number;
+  avgDaily: number;
+  suggested: number;
+};

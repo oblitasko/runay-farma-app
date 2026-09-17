@@ -8,3 +8,9 @@ export type Profile = {
   role: UserRole;
   full_name: string;
 };
+
+export type Store = {
+  id: string;
+  organization_id: string;
+  name: string;
+};

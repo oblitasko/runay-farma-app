@@ -11,6 +11,7 @@ type DraftPayment = { methodId: string; amount: string };
 
 export function CheckoutScreen() {
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const session = useCashRegisterStore((state) => state.session);
   const { cart, cartTotal, methods, onLoadMethods, onCheckout, loading, error, clearCart } = useSalesStore();
   const { goToSuccess, goToSale } = useSalesNavigation();
@@ -41,7 +42,7 @@ export function CheckoutScreen() {
 
   const confirm = async () => {
     setLocalError(null);
-    if (!profile?.store_id || !session) {
+    if (!activeStoreId || !session) {
       setLocalError('Necesitas una caja abierta');
       return;
     }
@@ -55,7 +56,7 @@ export function CheckoutScreen() {
     }
     try {
       const saleId = await onCheckout(
-        profile.store_id,
+        activeStoreId,
         session.id,
         payments
           .map((row) => ({ payment_method_id: row.methodId, amount: roundMoney(parseMoneyInput(row.amount)) }))

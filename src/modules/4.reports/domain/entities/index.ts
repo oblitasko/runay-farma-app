@@ -1,1 +1,1 @@
-export type { DailyReport, MethodTotal } from './report';
+export type { DailyReport, MethodTotal, PeriodReport, ProductTotal, StoreTotal } from './report';

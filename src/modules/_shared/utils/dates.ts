@@ -4,6 +4,12 @@ export function limaDateISO(date = new Date()) {
   return date.toLocaleDateString('en-CA', { timeZone: LIMA_TIME_ZONE });
 }
 
+export function addLimaDays(iso: string, days: number) {
+  const date = new Date(`${iso}T12:00:00-05:00`);
+  date.setDate(date.getDate() + days);
+  return date.toLocaleDateString('en-CA', { timeZone: LIMA_TIME_ZONE });
+}
+
 export function limaDayRange(dateISO: string) {
   return {
     from: `${dateISO}T00:00:00-05:00`,

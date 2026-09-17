@@ -82,6 +82,11 @@ export default function AppLayout() {
         />
         <Tabs.Screen name="proveedores" options={{ href: null, title: 'Proveedores' }} />
         <Tabs.Screen name="vencimientos" options={{ href: null, title: 'Vencimientos' }} />
+        <Tabs.Screen name="alertas" options={{ href: null, title: 'Alertas' }} />
+        <Tabs.Screen name="estadisticas" options={{ href: null, title: 'Estadísticas' }} />
+        <Tabs.Screen name="reposicion" options={{ href: null, title: 'Reposición' }} />
+        <Tabs.Screen name="sucursales" options={{ href: null, title: 'Sucursales' }} />
+        <Tabs.Screen name="factura" options={{ href: null, title: 'Comprobante' }} />
       </Tabs>
     </SafeAreaView>
   );

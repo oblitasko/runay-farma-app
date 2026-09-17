@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
@@ -15,24 +15,34 @@ export function SaleScreen() {
   const { isWide } = useBreakpoint();
   const { goToCheckout } = useSalesNavigation();
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
+  const storeName = useAuthStore((state) => state.stores.find((store) => store.id === state.activeStoreId)?.name);
   const { session, onLoadOpen } = useCashRegisterStore();
   const { items, search, setSearch, onLoad, loading } = useProductsStore();
   const { stock, onLoadStock } = useInventoryStore();
-  const { cart, addToCart, setQuantity, cartTotal } = useSalesStore();
+  const { cart, addToCart, setQuantity, cartTotal, clearCart } = useSalesStore();
   const activeProducts = items.filter((item) => item.is_active);
   const stockById = Object.fromEntries(stock.map((row) => [row.productId, row]));
+  const previousStoreId = useRef(activeStoreId);
+
+  useEffect(() => {
+    if (previousStoreId.current && previousStoreId.current !== activeStoreId) {
+      clearCart();
+    }
+    previousStoreId.current = activeStoreId;
+  }, [activeStoreId, clearCart]);
 
   useEffect(() => {
     if (profile?.organization_id) void onLoad(profile.organization_id);
-    if (profile?.store_id) void onLoadOpen(profile.store_id);
-  }, [profile?.organization_id, profile?.store_id, onLoad, onLoadOpen]);
+    if (activeStoreId) void onLoadOpen(activeStoreId);
+  }, [profile?.organization_id, activeStoreId, onLoad, onLoadOpen]);
 
   useFocusEffect(
     useCallback(() => {
-      if (profile?.organization_id && profile.store_id) {
-        void onLoadStock(profile.organization_id, profile.store_id);
+      if (profile?.organization_id && activeStoreId) {
+        void onLoadStock(profile.organization_id, activeStoreId);
       }
-    }, [profile?.organization_id, profile?.store_id, onLoadStock]),
+    }, [profile?.organization_id, activeStoreId, onLoadStock]),
   );
 
   const cartView = (
@@ -54,7 +64,10 @@ export function SaleScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Venta rápida" subtitle={session ? 'Caja abierta' : 'Abre caja para cobrar'} />
+      <ScreenHeader
+        title="Venta rápida"
+        subtitle={`${storeName ?? 'Local'} · ${session ? 'Caja abierta' : 'Abre caja para cobrar'}`}
+      />
       {!session ? (
         <View style={styles.warning}>
           <Text style={styles.warningText}>
@@ -79,7 +92,7 @@ export function SaleScreen() {
           refreshing={loading.status === 'loading'}
           onRefresh={() => {
             if (profile?.organization_id) void onLoad(profile.organization_id);
-            if (profile?.organization_id && profile.store_id) void onLoadStock(profile.organization_id, profile.store_id);
+            if (profile?.organization_id && activeStoreId) void onLoadStock(profile.organization_id, activeStoreId);
           }}
           ListEmptyComponent={<EmptyState title="Sin productos" description="Carga el catálogo para vender." />}
           renderItem={({ item }) => {

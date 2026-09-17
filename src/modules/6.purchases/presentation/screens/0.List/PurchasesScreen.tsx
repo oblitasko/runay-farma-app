@@ -8,13 +8,14 @@ import { usePurchasesNavigation, usePurchasesStore } from '../../../domain/useca
 
 export function PurchasesScreen() {
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const isOwner = profile?.role === 'owner';
   const { items, onLoad, loading, error } = usePurchasesStore();
-  const { goToReceive, goToSuppliers } = usePurchasesNavigation();
+  const { goToReceive, goToSuppliers, goToRestock, goToStores } = usePurchasesNavigation();
 
   useEffect(() => {
-    if (profile?.store_id) void onLoad(profile.store_id);
-  }, [profile?.store_id, onLoad]);
+    if (activeStoreId) void onLoad(activeStoreId);
+  }, [activeStoreId, onLoad]);
 
   return (
     <View style={styles.screen}>
@@ -23,14 +24,20 @@ export function PurchasesScreen() {
         subtitle="Ingreso de mercadería a lotes"
         right={<ButtonComponent label="Recibir" onPress={goToReceive} />}
       />
-      {isOwner ? <ButtonComponent variant="secondary" label="Proveedores" onPress={goToSuppliers} /> : null}
+      {isOwner ? (
+        <View style={styles.actions}>
+          <ButtonComponent variant="secondary" label="Proveedores" onPress={goToSuppliers} />
+          <ButtonComponent variant="secondary" label="Reposición" onPress={goToRestock} />
+          <ButtonComponent variant="secondary" label="Sucursales" onPress={goToStores} />
+        </View>
+      ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         style={styles.list}
         data={items}
         keyExtractor={(item) => item.id}
         refreshing={loading.status === 'loading'}
-        onRefresh={() => profile?.store_id && onLoad(profile.store_id)}
+        onRefresh={() => activeStoreId && onLoad(activeStoreId)}
         ListEmptyComponent={
           loading.status === 'loading' ? null : (
             <EmptyState title="Sin compras" description="Recibe mercadería para crear lotes y stock." />
@@ -53,6 +60,7 @@ export function PurchasesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.lg, paddingTop: space.lg },
   error: { marginTop: space.md, fontSize: fontSize.sm, color: colors.danger },
+  actions: { gap: space.sm },
   list: { marginTop: space.lg },
   card: {
     marginBottom: space.sm,

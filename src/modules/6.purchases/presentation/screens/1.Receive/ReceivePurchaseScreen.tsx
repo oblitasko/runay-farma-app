@@ -14,6 +14,7 @@ const emptyLine: Line = { productId: '', lotCode: '', expiresOn: '', quantity: '
 
 export function ReceivePurchaseScreen() {
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const { items: suppliers, onLoad: onLoadSuppliers } = useSuppliersStore();
   const { items: products, onLoad: onLoadProducts } = useProductsStore();
   const { onReceive, loading, error } = usePurchasesStore();
@@ -39,7 +40,7 @@ export function ReceivePurchaseScreen() {
 
   const save = async () => {
     setLocalError(null);
-    if (!profile?.store_id) return;
+    if (!activeStoreId) return;
     if (!supplierId) {
       setLocalError('Elige un proveedor');
       return;
@@ -63,7 +64,7 @@ export function ReceivePurchaseScreen() {
       return;
     }
     try {
-      await onReceive(profile.store_id, supplierId, notes, parsed);
+      await onReceive(activeStoreId, supplierId, notes, parsed);
       goToPurchases();
     } catch {
       // error en el store

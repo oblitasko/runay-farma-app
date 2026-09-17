@@ -1,27 +1,54 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ButtonComponent, EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
-import { formatPen, limaDateISO } from '@/src/modules/_shared/utils';
+import { formatPen, limaDateISO, openWhatsApp } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
 import { useCashRegisterStore } from '@/src/modules/3.cash-register/domain/usecases';
 import { useReportsStore } from '../../../domain/usecases';
 
 export function DailyReportScreen() {
-  const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
+  const storeName = useAuthStore((state) => state.stores.find((store) => store.id === state.activeStoreId)?.name);
   const session = useCashRegisterStore((state) => state.session);
+  const onLoadOpen = useCashRegisterStore((state) => state.onLoadOpen);
   const { report, dateISO, setDate, onLoad, loading, error } = useReportsStore();
   const [dateInput, setDateInput] = useState(dateISO || limaDateISO());
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.store_id) void onLoad(profile.store_id, dateInput);
-  }, [profile?.store_id, dateInput, onLoad]);
+    if (activeStoreId) {
+      void onLoad(activeStoreId, dateInput);
+      void onLoadOpen(activeStoreId);
+    }
+  }, [activeStoreId, dateInput, onLoad, onLoadOpen]);
 
-  const expectedCash = Number(session?.opening_amount ?? 0) + Number(report?.cashTotal ?? 0);
+  const today = limaDateISO();
+  const isToday = report?.dateISO === today;
+  const includeOpening = Boolean(isToday && session && session.store_id === activeStoreId);
+  const expectedCash = Number(report?.cashTotal ?? 0) + (includeOpening ? Number(session?.opening_amount ?? 0) : 0);
+
+  const shareWhatsApp = async () => {
+    if (!report) return;
+    setShareError(null);
+    const methods = report.byMethod.map((item) => `${item.name}: ${formatPen(item.amount)}`).join('\n');
+    const text = `RUNAY FARMA — ${storeName ?? 'Local'}
+Reporte ${report.dateISO}
+Ventas: ${report.salesCount}
+Total: ${formatPen(report.total)}
+${methods}
+${includeOpening ? `Efectivo esperado: ${formatPen(expectedCash)}` : `Efectivo de ventas: ${formatPen(report.cashTotal)}`}`;
+    try {
+      await openWhatsApp(undefined, text);
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : 'No se pudo abrir WhatsApp');
+    }
+  };
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Reporte diario" subtitle="Totales en hora de Lima" />
+      <ScreenHeader title="Reporte diario" subtitle={`${storeName ?? 'Local'} · hora de Lima`} />
       <InputComponent
         label="Fecha (YYYY-MM-DD)"
         value={dateInput}
@@ -36,14 +63,18 @@ export function DailyReportScreen() {
           variant="secondary"
           label="Hoy"
           onPress={() => {
-            const today = limaDateISO();
-            setDateInput(today);
-            setDate(today);
-            if (profile?.store_id) void onLoad(profile.store_id, today);
+            const next = limaDateISO();
+            setDateInput(next);
+            setDate(next);
+            if (activeStoreId) void onLoad(activeStoreId, next);
           }}
         />
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <View style={styles.actions}>
+        <ButtonComponent variant="secondary" label="Estadísticas 7/30" onPress={() => router.push('/(app)/estadisticas' as never)} />
+        {report ? <ButtonComponent variant="secondary" label="Enviar por WhatsApp" onPress={() => void shareWhatsApp()} /> : null}
+      </View>
+      {error || shareError ? <Text style={styles.error}>{shareError || error}</Text> : null}
 
       {loading.status === 'loading' && !report ? (
         <Text style={styles.loading}>Cargando reporte…</Text>
@@ -68,7 +99,11 @@ export function DailyReportScreen() {
             </View>
           ))}
           <View style={styles.expected}>
-            <Text style={styles.expectedLabel}>Efectivo esperado en caja (fondo + ventas en efectivo)</Text>
+            <Text style={styles.expectedLabel}>
+              {includeOpening
+                ? 'Efectivo esperado en caja (fondo de hoy + ventas en efectivo)'
+                : 'Efectivo de ventas del día (sin fondo de otra fecha)'}
+            </Text>
             <Text style={styles.expectedValue}>{formatPen(expectedCash)}</Text>
           </View>
         </View>
@@ -81,6 +116,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { paddingHorizontal: space.lg, paddingVertical: space.lg },
   today: { marginTop: space.md },
+  actions: { marginTop: space.md, gap: space.sm },
   error: { marginTop: space.md, fontSize: fontSize.sm, color: colors.danger },
   loading: { marginTop: space.xl, color: colors.textMuted },
   empty: { marginTop: space.xl },

@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { EmptyState, ScreenHeader } from '@/src/modules/_shared/components';
+import { ButtonComponent, EmptyState, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatDate, formatPen } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
@@ -13,8 +13,9 @@ type Filter = 'all' | 'min' | 'expiry';
 export function InventoryScreen({ lockedFilter }: { lockedFilter?: Filter }) {
   const params = useLocalSearchParams<{ filter?: string }>();
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const { stock, filter, setFilter, onLoadStock, loading, error } = useInventoryStore();
-  const { goToLots } = useInventoryNavigation();
+  const { goToLots, goToAlerts } = useInventoryNavigation();
   const activeFilter: Filter =
     lockedFilter ?? (params.filter === 'min' || params.filter === 'expiry' ? params.filter : filter);
 
@@ -24,10 +25,10 @@ export function InventoryScreen({ lockedFilter }: { lockedFilter?: Filter }) {
   }, [lockedFilter, params.filter, setFilter]);
 
   useEffect(() => {
-    if (profile?.organization_id && profile.store_id) {
-      void onLoadStock(profile.organization_id, profile.store_id);
+    if (profile?.organization_id && activeStoreId) {
+      void onLoadStock(profile.organization_id, activeStoreId);
     }
-  }, [profile?.organization_id, profile?.store_id, onLoadStock]);
+  }, [profile?.organization_id, activeStoreId, onLoadStock]);
 
   const rows = stock.filter((row) => {
     if (activeFilter === 'min') return row.isBelowMin;
@@ -41,7 +42,11 @@ export function InventoryScreen({ lockedFilter }: { lockedFilter?: Filter }) {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={title} subtitle={subtitle} />
+      <ScreenHeader
+        title={title}
+        subtitle={subtitle}
+        right={lockedFilter ? undefined : <ButtonComponent variant="secondary" label="Alertas" onPress={goToAlerts} />}
+      />
       {lockedFilter ? null : (
         <View style={styles.chips}>
           {(
@@ -65,7 +70,7 @@ export function InventoryScreen({ lockedFilter }: { lockedFilter?: Filter }) {
         data={rows}
         keyExtractor={(item) => item.productId}
         refreshing={loading.status === 'loading'}
-        onRefresh={() => profile?.organization_id && profile.store_id && onLoadStock(profile.organization_id, profile.store_id)}
+        onRefresh={() => profile?.organization_id && activeStoreId && onLoadStock(profile.organization_id, activeStoreId)}
         ListEmptyComponent={
           loading.status === 'loading' ? null : (
             <EmptyState title="Sin movimientos" description="Recibe una compra para ver stock y lotes." />

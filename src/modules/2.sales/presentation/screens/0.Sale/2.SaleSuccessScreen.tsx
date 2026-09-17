@@ -2,11 +2,13 @@ import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { ButtonComponent } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
+import { useInvoicingNavigation } from '@/src/modules/8.invoicing/domain/usecases';
 import { useSalesNavigation } from '../../../domain/usecases';
 
 export function SaleSuccessScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { goToSale, goToDetail } = useSalesNavigation();
+  const { goToInvoice } = useInvoicingNavigation();
 
   return (
     <View style={styles.screen}>
@@ -20,6 +22,7 @@ export function SaleSuccessScreen() {
         </Text>
         <View style={styles.actions}>
           <ButtonComponent label="Nueva venta" onPress={goToSale} />
+          {id ? <ButtonComponent variant="secondary" label="Emitir boleta" onPress={() => goToInvoice(id)} /> : null}
           {id ? <ButtonComponent variant="secondary" label="Ver detalle" onPress={() => goToDetail(id)} /> : null}
         </View>
       </View>

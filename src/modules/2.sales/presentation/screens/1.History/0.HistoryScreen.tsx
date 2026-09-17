@@ -7,13 +7,13 @@ import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
 import { useSalesNavigation, useSalesStore } from '../../../domain/usecases';
 
 export function HistoryScreen() {
-  const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const { history, onLoadHistory, loading, error } = useSalesStore();
   const { goToDetail } = useSalesNavigation();
 
   useEffect(() => {
-    if (profile?.store_id) void onLoadHistory(profile.store_id, limaDateISO());
-  }, [profile?.store_id, onLoadHistory]);
+    if (activeStoreId) void onLoadHistory(activeStoreId, limaDateISO());
+  }, [activeStoreId, onLoadHistory]);
 
   return (
     <View style={styles.screen}>
@@ -23,7 +23,7 @@ export function HistoryScreen() {
         data={history}
         keyExtractor={(item) => item.id}
         refreshing={loading.status === 'loading'}
-        onRefresh={() => profile?.store_id && onLoadHistory(profile.store_id)}
+        onRefresh={() => activeStoreId && onLoadHistory(activeStoreId)}
         ListEmptyComponent={
           loading.status === 'loading' ? null : (
             <EmptyState title="Sin ventas hoy" description="Las ventas aparecerán aquí al cobrar." />

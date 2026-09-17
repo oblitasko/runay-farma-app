@@ -35,7 +35,12 @@ export const SalesPort = {
   },
 
   async listSales(storeId: string, dateISO: string): Promise<Sale[]> {
-    const { from, to } = limaDayRange(dateISO);
+    return SalesPort.listSalesRange(storeId, dateISO, dateISO);
+  },
+
+  async listSalesRange(storeId: string, fromISO: string, toISO: string): Promise<Sale[]> {
+    const { from } = limaDayRange(fromISO);
+    const { to } = limaDayRange(toISO);
     const { data, error } = await SalesApiAdapter.from('sales')
       .select(saleSelect)
       .eq('store_id', storeId)

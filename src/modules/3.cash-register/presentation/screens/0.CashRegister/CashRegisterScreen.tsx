@@ -8,6 +8,8 @@ import { useCashRegisterStore } from '../../../domain/usecases';
 
 export function CashRegisterScreen() {
   const profile = useAuthStore((state) => state.profile);
+  const activeStoreId = useAuthStore((state) => state.activeStoreId);
+  const storeName = useAuthStore((state) => state.stores.find((store) => store.id === state.activeStoreId)?.name);
   const { session, lastClosed, onLoadOpen, onOpen, onClose, loading, error } = useCashRegisterStore();
   const [opening, setOpening] = useState('0');
   const [counted, setCounted] = useState('');
@@ -15,16 +17,16 @@ export function CashRegisterScreen() {
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.store_id) void onLoadOpen(profile.store_id);
-  }, [profile?.store_id, onLoadOpen]);
+    if (activeStoreId) void onLoadOpen(activeStoreId);
+  }, [activeStoreId, onLoadOpen]);
 
   const openRegister = async () => {
-    if (!profile?.organization_id || !profile.store_id) return;
+    if (!profile?.organization_id || !activeStoreId) return;
     setLocalError(null);
     try {
       await onOpen({
         organizationId: profile.organization_id,
-        storeId: profile.store_id,
+        storeId: activeStoreId,
         openedBy: profile.user_id,
         openingAmount: parseMoneyInput(opening),
       });
@@ -50,7 +52,7 @@ export function CashRegisterScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Caja" subtitle={session ? 'Turno abierto' : 'Sin turno'} />
+      <ScreenHeader title="Caja" subtitle={`${storeName ?? 'Local'} · ${session ? 'Turno abierto' : 'Sin turno'}`} />
       {error || localError ? <Text style={styles.error}>{localError || error}</Text> : null}
 
       {session ? (

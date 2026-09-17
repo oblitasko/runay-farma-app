@@ -1,1 +1,1 @@
-export type { Lot, StockRow } from './stock';
+export type { Lot, StockRow, RestockSuggestion } from './stock';

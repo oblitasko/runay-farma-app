@@ -140,6 +140,34 @@ export type Database = {
         };
         Update: { status?: SaleStatus };
       };
+      invoices: {
+        Row: {
+          id: string;
+          organization_id: string;
+          store_id: string;
+          sale_id: string;
+          type: 'boleta' | 'factura';
+          series: string;
+          number: number;
+          customer_name: string | null;
+          customer_doc: string | null;
+          customer_phone: string | null;
+          total: number;
+          status: 'issued';
+          sunat_status: 'not_sent';
+          issued_at: string;
+        };
+      };
+      document_series: {
+        Row: {
+          id: string;
+          organization_id: string;
+          store_id: string;
+          type: 'boleta' | 'factura';
+          series: string;
+          next_number: number;
+        };
+      };
       sale_items: {
         Row: {
           id: string;
@@ -184,6 +212,16 @@ export type Database = {
       close_cash_session: {
         Args: { p_session_id: string; p_counted_amount: number; p_notes?: string | null };
         Returns: Database['public']['Tables']['cash_sessions']['Row'];
+      };
+      issue_invoice: {
+        Args: {
+          p_sale_id: string;
+          p_type: 'boleta' | 'factura';
+          p_customer_name?: string | null;
+          p_customer_doc?: string | null;
+          p_customer_phone?: string | null;
+        };
+        Returns: string;
       };
     };
   };
