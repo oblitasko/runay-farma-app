@@ -9,6 +9,8 @@ import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatPen, openWhatsApp } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
 import { useSalesStore } from '@/src/modules/2.sales/domain/usecases';
+import { issuerFrom } from '@/src/modules/9.settings/domain/entities';
+import { useSettingsStore } from '@/src/modules/9.settings/domain/usecases';
 import type { Invoice, InvoiceType } from '../../../domain/entities';
 import { invoiceLabel, invoiceTypeLabel } from '../../../domain/entities';
 import { useInvoicingStore } from '../../../domain/usecases';
@@ -17,8 +19,11 @@ import { InvoicingPort } from '../../../ports';
 export function IssueInvoiceScreen() {
   const { saleId } = useLocalSearchParams<{ saleId: string }>();
   const stores = useAuthStore((state) => state.stores);
+  const profile = useAuthStore((state) => state.profile);
   const { selectedSale, onLoadSale } = useSalesStore();
   const { invoice, onLoadBySale, onIssue, loading, error } = useInvoicingStore();
+  const organization = useSettingsStore((state) => state.organization);
+  const onLoadSettings = useSettingsStore((state) => state.onLoad);
   const [type, setType] = useState<InvoiceType>('boleta');
   const [name, setName] = useState('');
   const [doc, setDoc] = useState('');
@@ -32,7 +37,14 @@ export function IssueInvoiceScreen() {
     void onLoadBySale(saleId);
   }, [saleId, onLoadSale, onLoadBySale]);
 
-  const storeName = stores.find((store) => store.id === (invoice?.store_id ?? selectedSale?.store_id))?.name ?? 'Local';
+  useEffect(() => {
+    if (profile?.organization_id) {
+      void onLoadSettings(profile.organization_id, invoice?.store_id ?? selectedSale?.store_id ?? null);
+    }
+  }, [profile?.organization_id, invoice?.store_id, selectedSale?.store_id, onLoadSettings]);
+
+  const store = stores.find((item) => item.id === (invoice?.store_id ?? selectedSale?.store_id)) ?? null;
+  const issuer = issuerFrom(organization, store);
 
   const issue = async () => {
     if (!saleId) return;
@@ -52,7 +64,7 @@ export function IssueInvoiceScreen() {
     if (!selectedSale) return;
     setActionError(null);
     try {
-      const html = InvoicingPort.buildHtml(current, selectedSale, storeName);
+      const html = InvoicingPort.buildHtml(current, selectedSale, issuer);
       if (Platform.OS === 'web') {
         await Print.printAsync({ html });
         return;
@@ -82,7 +94,7 @@ export function IssueInvoiceScreen() {
   const shareWhatsApp = async (current: Invoice) => {
     setActionError(null);
     try {
-      await openWhatsApp(current.customer_phone ?? phone, InvoicingPort.shareText(current, storeName));
+      await openWhatsApp(current.customer_phone ?? phone, InvoicingPort.shareText(current, issuer));
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'No se pudo abrir WhatsApp');
     }

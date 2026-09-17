@@ -3,6 +3,7 @@ import type { Sale } from '@/src/modules/2.sales/domain/entities';
 import { InvoicingApiAdapter } from '../adapters';
 import type { Invoice, IssueInvoiceInput } from '../domain/entities';
 import { invoiceLabel, invoiceTypeLabel } from '../domain/entities';
+import type { IssuerProfile } from '@/src/modules/9.settings/domain/entities';
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
@@ -47,7 +48,7 @@ export const InvoicingPort = {
     return InvoicingPort.getById(data as string);
   },
 
-  buildHtml(invoice: Invoice, sale: Sale, storeName: string) {
+  buildHtml(invoice: Invoice, sale: Sale, issuer: IssuerProfile) {
     const lines = (sale.sale_items ?? [])
       .map(
         (item) =>
@@ -61,6 +62,8 @@ export const InvoicingPort = {
       .join('');
     const customer = invoice.customer_name || 'Cliente varios';
     const doc = invoice.customer_doc ? ` · ${escapeHtml(invoice.customer_doc)}` : '';
+    const address = issuer.storeAddress ? `<p class="muted">${escapeHtml(issuer.storeAddress)}</p>` : '';
+    const ruc = issuer.ruc ? `RUC ${escapeHtml(issuer.ruc)} · ` : '';
     return `<!DOCTYPE html>
 <html>
   <head>
@@ -77,8 +80,9 @@ export const InvoicingPort = {
     </style>
   </head>
   <body>
-    <h1>RUNAY FARMA</h1>
-    <p class="muted">${escapeHtml(storeName)} · ${escapeHtml(formatDateTime(invoice.issued_at))}</p>
+    <h1>${escapeHtml(issuer.legalName)}</h1>
+    <p class="muted">${ruc}${escapeHtml(issuer.storeName)} · ${escapeHtml(formatDateTime(invoice.issued_at))}</p>
+    ${address}
     <p><strong>${escapeHtml(invoiceTypeLabel(invoice.type))} ${escapeHtml(invoiceLabel(invoice))}</strong></p>
     <p class="badge">Comprobante interno — no válido para SUNAT</p>
     <p>Cliente: ${escapeHtml(customer)}${doc}</p>
@@ -93,9 +97,11 @@ export const InvoicingPort = {
 </html>`;
   },
 
-  shareText(invoice: Invoice, storeName: string) {
+  shareText(invoice: Invoice, issuer: IssuerProfile) {
     const customer = invoice.customer_name ? `\nCliente: ${invoice.customer_name}` : '';
-    return `RUNAY FARMA — ${storeName}
+    const ruc = issuer.ruc ? `RUC ${issuer.ruc}\n` : '';
+    return `${issuer.legalName}
+${ruc}${issuer.storeName}${issuer.storeAddress ? `\n${issuer.storeAddress}` : ''}
 ${invoiceTypeLabel(invoice.type)} ${invoiceLabel(invoice)}${customer}
 Total ${formatPen(Number(invoice.total))}
 Comprobante interno — no válido para SUNAT`;

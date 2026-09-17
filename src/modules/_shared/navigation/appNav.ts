@@ -38,6 +38,14 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
     icon: 'storefront-outline',
     ownerOnly: true,
   },
+  {
+    name: 'configuracion',
+    href: '/(app)/configuracion',
+    match: '/configuracion',
+    label: 'Configuración',
+    icon: 'settings-outline',
+    ownerOnly: true,
+  },
 ];
 
 export const APP_TAB_SHORTCUTS = ['venta', 'inventario', 'caja', 'historial']

@@ -1,12 +1,14 @@
 import type { Session } from '@supabase/supabase-js';
 import { AuthApiAdapter } from '../adapters';
-import type { Profile, Store } from '../domain/entities';
+import type { Profile, Store, StoreInput } from '../domain/entities';
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
 const profileColumns = 'id, user_id, organization_id, store_id, role, full_name';
+const storeColumns =
+  'id, organization_id, name, address, district, phone, hours, sanitary_auth, director_name, director_license';
 
 export const AuthPort = {
   async signIn(email: string, password: string) {
@@ -54,7 +56,7 @@ export const AuthPort = {
 
   async listStores(organizationId: string): Promise<Store[]> {
     const { data, error } = await AuthApiAdapter.from('stores')
-      .select('id, organization_id, name')
+      .select(storeColumns)
       .eq('organization_id', organizationId)
       .order('name');
     throwIfError(error);
@@ -64,7 +66,26 @@ export const AuthPort = {
   async createStore(organizationId: string, name: string): Promise<Store> {
     const { data, error } = await AuthApiAdapter.from('stores')
       .insert({ organization_id: organizationId, name: name.trim() })
-      .select('id, organization_id, name')
+      .select(storeColumns)
+      .single();
+    throwIfError(error);
+    return data as Store;
+  },
+
+  async updateStore(storeId: string, input: StoreInput): Promise<Store> {
+    const { data, error } = await AuthApiAdapter.from('stores')
+      .update({
+        name: input.name.trim(),
+        address: input.address?.trim() || null,
+        district: input.district?.trim() || null,
+        phone: input.phone?.trim() || null,
+        hours: input.hours?.trim() || null,
+        sanitary_auth: input.sanitary_auth?.trim() || null,
+        director_name: input.director_name?.trim() || null,
+        director_license: input.director_license?.trim() || null,
+      })
+      .eq('id', storeId)
+      .select(storeColumns)
       .single();
     throwIfError(error);
     return data as Store;

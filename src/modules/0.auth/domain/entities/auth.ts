@@ -13,4 +13,22 @@ export type Store = {
   id: string;
   organization_id: string;
   name: string;
+  address: string | null;
+  district: string | null;
+  phone: string | null;
+  hours: string | null;
+  sanitary_auth: string | null;
+  director_name: string | null;
+  director_license: string | null;
+};
+
+export type StoreInput = {
+  name: string;
+  address?: string | null;
+  district?: string | null;
+  phone?: string | null;
+  hours?: string | null;
+  sanitary_auth?: string | null;
+  director_name?: string | null;
+  director_license?: string | null;
 };

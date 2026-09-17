@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { create } from 'zustand';
 import type { LoadingStatusProps } from '@/src/modules/_shared/domain/entities';
 import { AuthPort } from '../../ports';
-import type { Profile, Store } from '../entities';
+import type { Profile, Store, StoreInput } from '../entities';
 
 const ACTIVE_STORE_KEY = 'runay.farma.activeStoreId';
 
@@ -23,6 +23,7 @@ type AuthState = {
   onSetActiveStore: (storeId: string) => Promise<void>;
   onLoadStores: () => Promise<void>;
   onCreateStore: (name: string) => Promise<Store>;
+  onUpdateStore: (storeId: string, input: StoreInput) => Promise<void>;
   onLoadStaff: () => Promise<void>;
   onAssignStaffStore: (profileId: string, storeId: string) => Promise<void>;
   clearError: () => void;
@@ -166,6 +167,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const store = await AuthPort.createStore(profile.organization_id, name);
     set({ stores: [...get().stores, store].sort((a, b) => a.name.localeCompare(b.name, 'es')) });
     return store;
+  },
+
+  onUpdateStore: async (storeId, input) => {
+    const { profile } = get();
+    if (!profile || profile.role !== 'owner') throw new Error('Solo el dueño puede editar el local');
+    const store = await AuthPort.updateStore(storeId, input);
+    set({ stores: get().stores.map((item) => (item.id === storeId ? store : item)) });
   },
 
   onLoadStaff: async () => {

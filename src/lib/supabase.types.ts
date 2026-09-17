@@ -6,15 +6,70 @@ export type Database = {
   public: {
     Tables: {
       organizations: {
-        Row: { id: string; name: string; created_at: string };
-        Insert: { id?: string; name: string; created_at?: string };
-        Update: { name?: string };
+        Row: {
+          id: string;
+          name: string;
+          ruc: string | null;
+          tax_address: string | null;
+          phone: string | null;
+          email: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          ruc?: string | null;
+          tax_address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          ruc?: string | null;
+          tax_address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+        };
         Relationships: [];
       };
       stores: {
-        Row: { id: string; organization_id: string; name: string; created_at: string };
-        Insert: { id?: string; organization_id: string; name: string; created_at?: string };
-        Update: { name?: string };
+        Row: {
+          id: string;
+          organization_id: string;
+          name: string;
+          address: string | null;
+          district: string | null;
+          phone: string | null;
+          hours: string | null;
+          sanitary_auth: string | null;
+          director_name: string | null;
+          director_license: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          name: string;
+          address?: string | null;
+          district?: string | null;
+          phone?: string | null;
+          hours?: string | null;
+          sanitary_auth?: string | null;
+          director_name?: string | null;
+          director_license?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          address?: string | null;
+          district?: string | null;
+          phone?: string | null;
+          hours?: string | null;
+          sanitary_auth?: string | null;
+          director_name?: string | null;
+          director_license?: string | null;
+        };
       };
       profiles: {
         Row: {

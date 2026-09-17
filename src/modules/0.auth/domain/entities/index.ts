@@ -1,1 +1,1 @@
-export type { Profile, Store, UserRole } from './auth';
+export type { Profile, Store, StoreInput, UserRole } from './auth';
