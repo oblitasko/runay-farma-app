@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { isSupabaseConfigured } from '@/src/lib/supabase';
 import { ButtonComponent, ConfigBanner, InputComponent } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
@@ -34,9 +34,11 @@ export function LoginScreen() {
       >
         <View style={styles.card}>
           <View style={styles.hero}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>RF</Text>
-            </View>
+            <Image
+              source={require('@/assets/icon.png')}
+              style={styles.logo}
+              accessibilityLabel="RUNAY"
+            />
             <Text style={styles.title}>RUNAY FARMA</Text>
             <Text style={styles.subtitle}>Punto de venta para boticas</Text>
           </View>
@@ -104,14 +106,11 @@ const styles = StyleSheet.create({
   hero: { marginBottom: space.xl, alignItems: 'center' },
   logo: {
     marginBottom: space.md,
-    height: 56,
-    width: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: 72,
+    width: 72,
     borderRadius: radius.lg,
-    backgroundColor: colors.brand,
+    overflow: 'hidden',
   },
-  logoText: { fontSize: fontSize.lg, fontWeight: '700', color: colors.white },
   title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
   subtitle: { marginTop: space.xs, fontSize: fontSize.sm, color: colors.textMuted },
   field: { marginBottom: space.md },
