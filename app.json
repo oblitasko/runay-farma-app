@@ -23,7 +23,12 @@
         "backgroundColor": "#F93B2A"
       },
       "package": "com.runayfarma.app",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -53,6 +58,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "75366321-9ca2-4767-bc9e-e73e1ac57377"
+      }
+    },
+    "owner": "runay-tech"
   }
 }
