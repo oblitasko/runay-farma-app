@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { usePathname } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_TAB_SHORTCUTS, isNavItemActive } from '../navigation/appNav';
@@ -17,6 +17,10 @@ type Props = {
   menuOpen?: boolean;
 };
 
+function findTabRoute(routes: TabRoute[], name: string) {
+  return routes.find((entry) => entry.name === name || entry.name === `${name}/index`);
+}
+
 export function AppTabBar({ state, navigation, onMenuPress, menuOpen = false }: Props) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
@@ -24,7 +28,7 @@ export function AppTabBar({ state, navigation, onMenuPress, menuOpen = false }: 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, space.sm) }]}>
       {APP_TAB_SHORTCUTS.map((item) => {
-        const route = state.routes.find((entry) => entry.name === item.name);
+        const route = findTabRoute(state.routes, item.name);
         const active = isNavItemActive(pathname, item);
         const color = active ? colors.brand : colors.textMuted;
         return (
@@ -32,14 +36,17 @@ export function AppTabBar({ state, navigation, onMenuPress, menuOpen = false }: 
             key={item.name}
             style={styles.item}
             onPress={() => {
-              if (!route) return;
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (event.defaultPrevented) return;
-              navigation.navigate(route.name);
+              if (route) {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (event.defaultPrevented) return;
+                navigation.navigate(route.name);
+                return;
+              }
+              router.push(item.href as never);
             }}
           >
             <Ionicons name={item.icon} size={22} color={color} />

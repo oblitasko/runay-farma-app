@@ -44,15 +44,15 @@ export default function AppLayout() {
         <Tabs.Screen name="inventario" options={{ title: 'Inventario' }} />
         <Tabs.Screen name="caja" options={{ title: 'Caja' }} />
         <Tabs.Screen name="historial" options={{ title: 'Historial' }} />
-        <Tabs.Screen name="productos" options={{ href: null, title: 'Productos' }} />
+        <Tabs.Screen name="productos/index" options={{ href: null, title: 'Productos' }} />
         <Tabs.Screen name="compras" options={{ href: null, title: 'Compras' }} />
-        <Tabs.Screen name="reporte" options={{ href: null, title: 'Reporte' }} />
-        <Tabs.Screen name="proveedores" options={{ href: null, title: 'Proveedores' }} />
-        <Tabs.Screen name="vencimientos" options={{ href: null, title: 'Vencimientos' }} />
-        <Tabs.Screen name="alertas" options={{ href: null, title: 'Alertas' }} />
-        <Tabs.Screen name="estadisticas" options={{ href: null, title: 'Estadísticas' }} />
-        <Tabs.Screen name="reposicion" options={{ href: null, title: 'Reposición' }} />
-        <Tabs.Screen name="sucursales" options={{ href: null, title: 'Sucursales' }} />
+        <Tabs.Screen name="reporte/index" options={{ href: null, title: 'Reporte' }} />
+        <Tabs.Screen name="proveedores/index" options={{ href: null, title: 'Proveedores' }} />
+        <Tabs.Screen name="vencimientos/index" options={{ href: null, title: 'Vencimientos' }} />
+        <Tabs.Screen name="alertas/index" options={{ href: null, title: 'Alertas' }} />
+        <Tabs.Screen name="estadisticas/index" options={{ href: null, title: 'Estadísticas' }} />
+        <Tabs.Screen name="reposicion/index" options={{ href: null, title: 'Reposición' }} />
+        <Tabs.Screen name="sucursales/index" options={{ href: null, title: 'Sucursales' }} />
         <Tabs.Screen name="factura" options={{ href: null, title: 'Comprobante' }} />
       </Tabs>
       <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
