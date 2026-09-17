@@ -1,8 +1,8 @@
 export const colors = {
-  brand: '#0F766E',
-  brandDark: '#115E59',
-  brandLight: '#CCFBF1',
-  brandMuted: '#99F6E4',
+  brand: '#F93B2A',
+  brandDark: '#C42A1C',
+  brandLight: '#FDE8E6',
+  brandMuted: '#F5A8A1',
   bg: '#F8FAFC',
   card: '#FFFFFF',
   text: '#0F172A',
