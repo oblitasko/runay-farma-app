@@ -1,13 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { Tabs, Slot } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppSidebar } from '@/src/modules/_shared/components';
+import { AppDrawer, AppSidebar, AppTabBar } from '@/src/modules/_shared/components';
 import { colors } from '@/src/modules/_shared/theme';
 import { useBreakpoint } from '@/src/modules/_shared/utils';
 
 export default function AppLayout() {
   const { isWide } = useBreakpoint();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (isWide) setDrawerOpen(false);
+  }, [isWide]);
 
   if (isWide) {
     return (
@@ -25,61 +30,23 @@ export default function AppLayout() {
   return (
     <SafeAreaView style={styles.phoneSafe} edges={['top']}>
       <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: colors.brand,
-          tabBarInactiveTintColor: colors.textMuted,
-        }}
+        tabBar={(props) => (
+          <AppTabBar
+            state={props.state}
+            navigation={props.navigation}
+            onMenuPress={() => setDrawerOpen(true)}
+            menuOpen={drawerOpen}
+          />
+        )}
+        screenOptions={{ headerShown: false }}
       >
-        <Tabs.Screen
-          name="venta"
-          options={{
-            title: 'Venta',
-            tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="productos"
-          options={{
-            title: 'Productos',
-            tabBarIcon: ({ color, size }) => <Ionicons name="pricetag-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="inventario"
-          options={{
-            title: 'Inventario',
-            tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="compras"
-          options={{
-            title: 'Compras',
-            tabBarIcon: ({ color, size }) => <Ionicons name="archive-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="historial"
-          options={{
-            title: 'Historial',
-            tabBarIcon: ({ color, size }) => <Ionicons name="time-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="caja"
-          options={{
-            title: 'Caja',
-            tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="reporte"
-          options={{
-            title: 'Reporte',
-            tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />,
-          }}
-        />
+        <Tabs.Screen name="venta" options={{ title: 'Venta' }} />
+        <Tabs.Screen name="inventario" options={{ title: 'Inventario' }} />
+        <Tabs.Screen name="caja" options={{ title: 'Caja' }} />
+        <Tabs.Screen name="historial" options={{ title: 'Historial' }} />
+        <Tabs.Screen name="productos" options={{ href: null, title: 'Productos' }} />
+        <Tabs.Screen name="compras" options={{ href: null, title: 'Compras' }} />
+        <Tabs.Screen name="reporte" options={{ href: null, title: 'Reporte' }} />
         <Tabs.Screen name="proveedores" options={{ href: null, title: 'Proveedores' }} />
         <Tabs.Screen name="vencimientos" options={{ href: null, title: 'Vencimientos' }} />
         <Tabs.Screen name="alertas" options={{ href: null, title: 'Alertas' }} />
@@ -88,6 +55,7 @@ export default function AppLayout() {
         <Tabs.Screen name="sucursales" options={{ href: null, title: 'Sucursales' }} />
         <Tabs.Screen name="factura" options={{ href: null, title: 'Comprobante' }} />
       </Tabs>
+      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </SafeAreaView>
   );
 }

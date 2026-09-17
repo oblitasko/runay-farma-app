@@ -4,3 +4,6 @@ export { ScreenHeader } from './ScreenHeader';
 export { EmptyState } from './EmptyState';
 export { ConfigBanner } from './ConfigBanner';
 export { AppSidebar } from './AppSidebar';
+export { AppNavMenu } from './AppNavMenu';
+export { AppDrawer } from './AppDrawer';
+export { AppTabBar } from './AppTabBar';

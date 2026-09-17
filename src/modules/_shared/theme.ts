@@ -16,6 +16,7 @@ export const colors = {
   overlay: 'rgba(0,0,0,0.4)',
   white: '#FFFFFF',
   sidebarActive: 'rgba(255,255,255,0.15)',
+  dark: '#0F172A',
 };
 
 export const space = {
