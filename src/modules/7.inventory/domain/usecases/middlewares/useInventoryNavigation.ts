@@ -7,6 +7,8 @@ export function useInventoryNavigation() {
         (filter && filter !== 'all' ? `/(app)/inventario?filter=${filter}` : '/(app)/inventario') as never,
       ),
     goToLots: (productId: string) => router.push(`/(app)/inventario/${productId}` as never),
+    goToKardex: () => router.push('/(app)/kardex' as never),
+    goToKardexProduct: (productId: string) => router.push(`/(app)/kardex/${productId}` as never),
     goToExpirations: () => router.push('/(app)/vencimientos' as never),
     goToAlerts: () => router.push('/(app)/alertas' as never),
   };

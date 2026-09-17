@@ -1,8 +1,8 @@
-import { addLimaDays, limaDateISO } from '@/src/modules/_shared/utils';
+import { addLimaDays, limaDateISO, limaDayRange } from '@/src/modules/_shared/utils';
 import { ProductsPort } from '@/src/modules/1.products/ports';
 import { SalesPort } from '@/src/modules/2.sales/ports';
 import { InventoryApiAdapter } from '../adapters';
-import type { Lot, RestockSuggestion, StockRow } from '../domain/entities';
+import type { KardexLine, KardexPeriod, KardexView, Lot, RestockSuggestion, StockRow } from '../domain/entities';
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
@@ -119,5 +119,45 @@ export const InventoryPort = {
       })
       .filter((row) => row.suggested > 0)
       .sort((a, b) => b.suggested - a.suggested);
+  },
+
+  async listKardex(storeId: string, productId: string): Promise<KardexLine[]> {
+    const { data, error } = await InventoryApiAdapter.from('kardex_lines')
+      .select(
+        'id, store_id, product_id, product_name, presentation, type, qty_in, qty_out, product_balance, lot_balance, lot_code, expires_on, supplier_name, sale_id, purchase_id, purchase_notes, created_at',
+      )
+      .eq('store_id', storeId)
+      .eq('product_id', productId)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true });
+    throwIfError(error);
+    return ((data ?? []) as KardexLine[]).map((row) => ({
+      ...row,
+      qty_in: Number(row.qty_in),
+      qty_out: Number(row.qty_out),
+      product_balance: Number(row.product_balance),
+      lot_balance: Number(row.lot_balance),
+    }));
+  },
+
+  sliceKardex(lines: KardexLine[], period: KardexPeriod, lotCode?: string | null): KardexView {
+    const lotCodes = [...new Set(lines.map((line) => line.lot_code))];
+    const scoped = lotCode ? lines.filter((line) => line.lot_code === lotCode) : lines;
+    if (period === 'all') {
+      return { opening: null, lines: scoped, lotCodes };
+    }
+    const fromISO = addLimaDays(limaDateISO(), -(period - 1));
+    const fromMs = new Date(limaDayRange(fromISO).from).getTime();
+    const before = scoped.filter((line) => new Date(line.created_at).getTime() < fromMs);
+    const inRange = scoped.filter((line) => new Date(line.created_at).getTime() >= fromMs);
+    const last = before.at(-1);
+    return {
+      opening: {
+        productBalance: last?.product_balance ?? 0,
+        lotBalance: lotCode ? (last?.lot_balance ?? 0) : null,
+      },
+      lines: inRange,
+      lotCodes,
+    };
   },
 };

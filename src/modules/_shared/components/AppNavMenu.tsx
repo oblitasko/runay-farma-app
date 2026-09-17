@@ -48,7 +48,7 @@ export function AppNavMenu({ onNavigate }: Props) {
       ) : (
         <View style={styles.storeSpacer} />
       )}
-      <ScrollView style={styles.navScroll} contentContainerStyle={styles.navContent}>
+      <ScrollView style={styles.navScroll} contentContainerStyle={styles.navContent} showsVerticalScrollIndicator={false}>
         {APP_NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner).map((item) => {
           const active = isNavItemActive(pathname, item);
           const showBadge = item.match === '/alertas' && alertCount > 0;

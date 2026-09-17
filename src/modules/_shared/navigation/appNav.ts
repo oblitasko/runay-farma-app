@@ -14,6 +14,7 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
   { name: 'venta', href: '/(app)/venta', match: '/venta', label: 'Venta', icon: 'cart-outline', shortcut: true },
   { name: 'productos', href: '/(app)/productos', match: '/productos', label: 'Productos', icon: 'pricetag-outline' },
   { name: 'inventario', href: '/(app)/inventario', match: '/inventario', label: 'Inventario', icon: 'cube-outline', shortcut: true },
+  { name: 'kardex', href: '/(app)/kardex', match: '/kardex', label: 'Kardex', icon: 'list-outline' },
   { name: 'alertas', href: '/(app)/alertas', match: '/alertas', label: 'Alertas', icon: 'notifications-outline' },
   { name: 'compras', href: '/(app)/compras', match: '/compras', label: 'Compras', icon: 'archive-outline' },
   { name: 'proveedores', href: '/(app)/proveedores', match: '/proveedores', label: 'Proveedores', icon: 'business-outline' },

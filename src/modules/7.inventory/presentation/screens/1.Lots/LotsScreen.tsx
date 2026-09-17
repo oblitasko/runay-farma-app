@@ -1,16 +1,17 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { EmptyState, ScreenHeader } from '@/src/modules/_shared/components';
+import { ButtonComponent, EmptyState, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { formatDate, formatPen, limaDateISO } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
-import { useInventoryStore } from '../../../domain/usecases';
+import { useInventoryNavigation, useInventoryStore } from '../../../domain/usecases';
 
 export function LotsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const { lots, onLoadLots, loading } = useInventoryStore();
+  const { goToKardexProduct } = useInventoryNavigation();
   const today = limaDateISO();
 
   useEffect(() => {
@@ -21,7 +22,13 @@ export function LotsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={title} subtitle="Lotes de la sucursal (FEFO al vender)" />
+      <ScreenHeader
+        title={title}
+        subtitle="Lotes de la sucursal (FEFO al vender)"
+        right={
+          id ? <ButtonComponent variant="secondary" label="Kardex" onPress={() => goToKardexProduct(id)} /> : undefined
+        }
+      />
       <FlatList
         data={lots}
         keyExtractor={(item) => item.id}
