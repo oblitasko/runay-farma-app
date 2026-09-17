@@ -46,6 +46,20 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
+          name="inventario"
+          options={{
+            title: 'Inventario',
+            tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="compras"
+          options={{
+            title: 'Compras',
+            tabBarIcon: ({ color, size }) => <Ionicons name="archive-outline" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="historial"
           options={{
             title: 'Historial',
@@ -66,6 +80,8 @@ export default function AppLayout() {
             tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />,
           }}
         />
+        <Tabs.Screen name="proveedores" options={{ href: null, title: 'Proveedores' }} />
+        <Tabs.Screen name="vencimientos" options={{ href: null, title: 'Vencimientos' }} />
       </Tabs>
     </SafeAreaView>
   );

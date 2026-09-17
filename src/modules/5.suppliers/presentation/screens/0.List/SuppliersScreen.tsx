@@ -2,43 +2,26 @@ import { useEffect, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ButtonComponent, EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
-import { formatPen, parseMoneyInput } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
-import { useInventoryStore } from '@/src/modules/7.inventory/domain/usecases';
-import type { Product } from '../../../domain/entities';
-import { useProductsStore } from '../../../domain/usecases';
+import type { Supplier } from '../../../domain/entities';
+import { useSuppliersStore } from '../../../domain/usecases';
 
-type FormState = {
-  name: string;
-  sale_price: string;
-  barcode: string;
-  sku: string;
-  min_stock: string;
-  is_active: boolean;
-};
+type FormState = { name: string; ruc: string; phone: string; is_active: boolean };
+const emptyForm: FormState = { name: '', ruc: '', phone: '', is_active: true };
 
-const emptyForm: FormState = { name: '', sale_price: '', barcode: '', sku: '', min_stock: '0', is_active: true };
-
-export function ProductsScreen() {
+export function SuppliersScreen() {
   const profile = useAuthStore((state) => state.profile);
   const isOwner = profile?.role === 'owner';
-  const { items, search, setSearch, onLoad, onCreate, onUpdate, loading, error } = useProductsStore();
-  const { stock, onLoadStock } = useInventoryStore();
+  const { items, search, setSearch, onLoad, onCreate, onUpdate, loading, error } = useSuppliersStore();
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
+  const [editing, setEditing] = useState<Supplier | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const stockById = Object.fromEntries(stock.map((row) => [row.productId, row]));
 
   useEffect(() => {
-    if (profile?.organization_id) {
-      void onLoad(profile.organization_id);
-    }
-    if (profile?.organization_id && profile.store_id) {
-      void onLoadStock(profile.organization_id, profile.store_id);
-    }
-  }, [profile?.organization_id, profile?.store_id, onLoad, onLoadStock]);
+    if (profile?.organization_id) void onLoad(profile.organization_id);
+  }, [profile?.organization_id, onLoad]);
 
   const openCreate = () => {
     setEditing(null);
@@ -47,16 +30,14 @@ export function ProductsScreen() {
     setFormOpen(true);
   };
 
-  const openEdit = (product: Product) => {
+  const openEdit = (supplier: Supplier) => {
     if (!isOwner) return;
-    setEditing(product);
+    setEditing(supplier);
     setForm({
-      name: product.name,
-      sale_price: String(product.sale_price),
-      barcode: product.barcode ?? '',
-      sku: product.sku ?? '',
-      min_stock: String(product.min_stock ?? 0),
-      is_active: product.is_active,
+      name: supplier.name,
+      ruc: supplier.ruc ?? '',
+      phone: supplier.phone ?? '',
+      is_active: supplier.is_active,
     });
     setFormError(null);
     setFormOpen(true);
@@ -64,9 +45,8 @@ export function ProductsScreen() {
 
   const save = async () => {
     if (!profile) return;
-    const price = parseMoneyInput(form.sale_price);
-    if (!form.name.trim() || price <= 0) {
-      setFormError('Nombre y precio son obligatorios');
+    if (!form.name.trim()) {
+      setFormError('El nombre es obligatorio');
       return;
     }
     setSaving(true);
@@ -75,17 +55,12 @@ export function ProductsScreen() {
       const payload = {
         organization_id: profile.organization_id,
         name: form.name,
-        sale_price: price,
-        barcode: form.barcode,
-        sku: form.sku,
-        min_stock: isOwner ? parseMoneyInput(form.min_stock) : undefined,
+        ruc: form.ruc,
+        phone: form.phone,
         is_active: form.is_active,
       };
-      if (editing) {
-        await onUpdate(editing.id, payload);
-      } else {
-        await onCreate(payload);
-      }
+      if (editing) await onUpdate(editing.id, payload);
+      else await onCreate(payload);
       setFormOpen(false);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'No se pudo guardar');
@@ -97,21 +72,20 @@ export function ProductsScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Productos"
-        subtitle={isOwner ? 'Catálogo de la botica' : 'Consulta de precios'}
+        title="Proveedores"
+        subtitle={isOwner ? 'Laboratorios y distribuidores' : 'Consulta'}
         right={isOwner ? <ButtonComponent label="Nuevo" onPress={openCreate} /> : undefined}
       />
       <InputComponent
         label="Buscar"
         value={search}
+        placeholder="Nombre o RUC"
         onChangeText={(value) => {
           setSearch(value);
           if (profile?.organization_id) void onLoad(profile.organization_id, value);
         }}
-        placeholder="Nombre, código de barras o SKU"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-
       <FlatList
         style={styles.list}
         data={items}
@@ -120,22 +94,17 @@ export function ProductsScreen() {
         onRefresh={() => profile?.organization_id && onLoad(profile.organization_id)}
         ListEmptyComponent={
           loading.status === 'loading' ? null : (
-            <EmptyState title="Sin productos" description="Agrega el primer producto para empezar a vender." />
+            <EmptyState title="Sin proveedores" description="Registra el primer proveedor para ingresar compras." />
           )
         }
         renderItem={({ item }) => (
           <Pressable style={styles.card} onPress={() => openEdit(item)}>
-            <View style={styles.row}>
-              <View style={styles.copy}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.meta}>
-                  {item.barcode || item.sku || 'Sin código'} {!item.is_active ? '· Inactivo' : ''} · Stock{' '}
-                  {stockById[item.id]?.sellable ?? 0}
-                  {item.min_stock ? ` · Mín. ${item.min_stock}` : ''}
-                </Text>
-              </View>
-              <Text style={styles.price}>{formatPen(Number(item.sale_price))}</Text>
-            </View>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.meta}>
+              {item.ruc || 'Sin RUC'}
+              {item.phone ? ` · ${item.phone}` : ''}
+              {!item.is_active ? ' · Inactivo' : ''}
+            </Text>
           </Pressable>
         )}
       />
@@ -143,33 +112,15 @@ export function ProductsScreen() {
       <Modal visible={formOpen} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>{editing ? 'Editar producto' : 'Nuevo producto'}</Text>
+            <Text style={styles.sheetTitle}>{editing ? 'Editar proveedor' : 'Nuevo proveedor'}</Text>
             <View style={styles.form}>
               <InputComponent label="Nombre" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
-              <InputComponent
-                label="Precio de venta (S/)"
-                value={form.sale_price}
-                onChangeText={(sale_price) => setForm({ ...form, sale_price })}
-                keyboardType="decimal-pad"
-              />
-              <InputComponent
-                label="Código de barras"
-                value={form.barcode}
-                onChangeText={(barcode) => setForm({ ...form, barcode })}
-              />
-              <InputComponent label="SKU" value={form.sku} onChangeText={(sku) => setForm({ ...form, sku })} />
-              {isOwner ? (
-                <InputComponent
-                  label="Stock mínimo"
-                  value={form.min_stock}
-                  keyboardType="decimal-pad"
-                  onChangeText={(min_stock) => setForm({ ...form, min_stock })}
-                />
-              ) : null}
+              <InputComponent label="RUC" value={form.ruc} onChangeText={(ruc) => setForm({ ...form, ruc })} keyboardType="number-pad" />
+              <InputComponent label="Teléfono" value={form.phone} onChangeText={(phone) => setForm({ ...form, phone })} keyboardType="phone-pad" />
               {editing ? (
                 <Pressable onPress={() => setForm({ ...form, is_active: !form.is_active })}>
                   <Text style={styles.toggle}>
-                    {form.is_active ? 'Producto activo (tocar para desactivar)' : 'Producto inactivo (tocar para activar)'}
+                    {form.is_active ? 'Proveedor activo (tocar para desactivar)' : 'Proveedor inactivo (tocar para activar)'}
                   </Text>
                 </Pressable>
               ) : null}
@@ -195,11 +146,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  copy: { flex: 1, paddingRight: space.md },
   name: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
   meta: { fontSize: fontSize.xs, color: colors.textMuted },
-  price: { fontSize: fontSize.md, fontWeight: '700', color: colors.brand },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay },
   sheet: {
     borderTopLeftRadius: radius.xl,

@@ -7,6 +7,10 @@ import { colors, fontSize, radius, space } from '../theme';
 const items = [
   { href: '/(app)/venta', match: '/venta', label: 'Venta', icon: 'cart-outline' as const },
   { href: '/(app)/productos', match: '/productos', label: 'Productos', icon: 'pricetag-outline' as const },
+  { href: '/(app)/inventario', match: '/inventario', label: 'Inventario', icon: 'cube-outline' as const },
+  { href: '/(app)/compras', match: '/compras', label: 'Compras', icon: 'archive-outline' as const },
+  { href: '/(app)/proveedores', match: '/proveedores', label: 'Proveedores', icon: 'business-outline' as const },
+  { href: '/(app)/vencimientos', match: '/vencimientos', label: 'Vencimientos', icon: 'warning-outline' as const },
   { href: '/(app)/historial', match: '/historial', label: 'Historial', icon: 'time-outline' as const },
   { href: '/(app)/caja', match: '/caja', label: 'Caja', icon: 'cash-outline' as const },
   { href: '/(app)/reporte', match: '/reporte', label: 'Reporte', icon: 'stats-chart-outline' as const },

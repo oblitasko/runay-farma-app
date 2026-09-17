@@ -1,0 +1,1 @@
+export { InventoryPort } from './InventoryPort';

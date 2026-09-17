@@ -13,7 +13,7 @@ type SalesState = {
   lastSaleId: string | null;
   loading: LoadingStatusProps;
   error: string | null;
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, available?: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
@@ -33,10 +33,12 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   loading: { status: 'neutral' },
   error: null,
 
-  addToCart: (product) => {
+  addToCart: (product, available = Number.POSITIVE_INFINITY) => {
+    if (available < 1) return;
     const current = get().cart;
     const existing = current.find((item) => item.productId === product.id);
     if (existing) {
+      if (existing.quantity >= available) return;
       set({
         cart: current.map((item) =>
           item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item,

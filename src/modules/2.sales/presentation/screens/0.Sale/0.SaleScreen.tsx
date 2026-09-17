@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmptyState, InputComponent, ScreenHeader } from '@/src/modules/_shared/components';
 import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
@@ -6,6 +7,7 @@ import { formatPen, useBreakpoint } from '@/src/modules/_shared/utils';
 import { useAuthStore } from '@/src/modules/0.auth/domain/usecases';
 import { useProductsStore } from '@/src/modules/1.products/domain/usecases';
 import { useCashRegisterStore } from '@/src/modules/3.cash-register/domain/usecases';
+import { useInventoryStore } from '@/src/modules/7.inventory/domain/usecases';
 import { useSalesNavigation, useSalesStore } from '../../../domain/usecases';
 import { CartPanel } from '../../components';
 
@@ -15,13 +17,23 @@ export function SaleScreen() {
   const profile = useAuthStore((state) => state.profile);
   const { session, onLoadOpen } = useCashRegisterStore();
   const { items, search, setSearch, onLoad, loading } = useProductsStore();
+  const { stock, onLoadStock } = useInventoryStore();
   const { cart, addToCart, setQuantity, cartTotal } = useSalesStore();
   const activeProducts = items.filter((item) => item.is_active);
+  const stockById = Object.fromEntries(stock.map((row) => [row.productId, row]));
 
   useEffect(() => {
     if (profile?.organization_id) void onLoad(profile.organization_id);
     if (profile?.store_id) void onLoadOpen(profile.store_id);
   }, [profile?.organization_id, profile?.store_id, onLoad, onLoadOpen]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (profile?.organization_id && profile.store_id) {
+        void onLoadStock(profile.organization_id, profile.store_id);
+      }
+    }, [profile?.organization_id, profile?.store_id, onLoadStock]),
+  );
 
   const cartView = (
     <CartPanel
@@ -29,7 +41,8 @@ export function SaleScreen() {
       total={cartTotal()}
       onIncrease={(id) => {
         const item = cart.find((row) => row.productId === id);
-        if (item) setQuantity(id, item.quantity + 1);
+        const available = stockById[id]?.sellable ?? 0;
+        if (item) setQuantity(id, Math.min(item.quantity + 1, available));
       }}
       onDecrease={(id) => {
         const item = cart.find((row) => row.productId === id);
@@ -64,19 +77,33 @@ export function SaleScreen() {
           data={activeProducts}
           keyExtractor={(item) => item.id}
           refreshing={loading.status === 'loading'}
-          onRefresh={() => profile?.organization_id && onLoad(profile.organization_id)}
+          onRefresh={() => {
+            if (profile?.organization_id) void onLoad(profile.organization_id);
+            if (profile?.organization_id && profile.store_id) void onLoadStock(profile.organization_id, profile.store_id);
+          }}
           ListEmptyComponent={<EmptyState title="Sin productos" description="Carga el catálogo para vender." />}
-          renderItem={({ item }) => (
-            <Pressable style={styles.card} disabled={!session} onPress={() => addToCart(item)}>
-              <View style={styles.cardRow}>
-                <View style={styles.cardCopy}>
-                  <Text style={styles.cardTitle}>{item.name}</Text>
-                  <Text style={styles.cardMeta}>{item.barcode || item.sku || 'Sin código'}</Text>
+          renderItem={({ item }) => {
+            const row = stockById[item.id];
+            const sellable = row?.sellable ?? 0;
+            const inCart = cart.find((line) => line.productId === item.id)?.quantity ?? 0;
+            const canAdd = Boolean(session) && sellable > inCart;
+            return (
+              <Pressable style={styles.card} disabled={!canAdd} onPress={() => addToCart(item, sellable)}>
+                <View style={styles.cardRow}>
+                  <View style={styles.cardCopy}>
+                    <Text style={styles.cardTitle}>{item.name}</Text>
+                    <Text style={styles.cardMeta}>
+                      {item.barcode || item.sku || 'Sin código'} · Stock {sellable}
+                    </Text>
+                    {row?.isBelowMin ? <Text style={styles.alert}>Bajo mínimo</Text> : null}
+                    {row?.hasExpiring30 ? <Text style={styles.warn}>Hay lote por vencer</Text> : null}
+                    {sellable <= 0 ? <Text style={styles.alert}>Sin stock vendible</Text> : null}
+                  </View>
+                  <Text style={styles.cardPrice}>{formatPen(Number(item.sale_price))}</Text>
                 </View>
-                <Text style={styles.cardPrice}>{formatPen(Number(item.sale_price))}</Text>
-              </View>
-            </Pressable>
-          )}
+              </Pressable>
+            );
+          }}
         />
         {isWide ? <View style={styles.cartWide}>{cartView}</View> : null}
       </View>
@@ -109,6 +136,8 @@ const styles = StyleSheet.create({
   cardCopy: { flex: 1, paddingRight: space.md },
   cardTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
   cardMeta: { fontSize: fontSize.xs, color: colors.textMuted },
+  alert: { fontSize: fontSize.xs, fontWeight: '600', color: colors.danger },
+  warn: { fontSize: fontSize.xs, fontWeight: '600', color: colors.warningBody },
   cardPrice: { fontSize: fontSize.md, fontWeight: '700', color: colors.brand },
   cartWide: { width: 320 },
   cartPhone: { paddingVertical: space.md },

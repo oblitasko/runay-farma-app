@@ -5,10 +5,12 @@ function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
+const columns = 'id, organization_id, sku, barcode, name, sale_price, min_stock, is_active';
+
 export const ProductsPort = {
   async list(organizationId: string, search = ''): Promise<Product[]> {
     let query = ProductsApiAdapter.from('products')
-      .select('id, organization_id, sku, barcode, name, sale_price, is_active')
+      .select(columns)
       .eq('organization_id', organizationId)
       .order('name');
 
@@ -30,9 +32,10 @@ export const ProductsPort = {
         sale_price: input.sale_price,
         sku: input.sku?.trim() || null,
         barcode: input.barcode?.trim() || null,
+        min_stock: input.min_stock ?? 0,
         is_active: input.is_active ?? true,
       })
-      .select('id, organization_id, sku, barcode, name, sale_price, is_active')
+      .select(columns)
       .single();
     throwIfError(error);
     return data as Product;
@@ -45,10 +48,11 @@ export const ProductsPort = {
         sale_price: input.sale_price,
         sku: input.sku === undefined ? undefined : input.sku?.trim() || null,
         barcode: input.barcode === undefined ? undefined : input.barcode?.trim() || null,
+        min_stock: input.min_stock,
         is_active: input.is_active,
       })
       .eq('id', id)
-      .select('id, organization_id, sku, barcode, name, sale_price, is_active')
+      .select(columns)
       .single();
     throwIfError(error);
     return data as Product;

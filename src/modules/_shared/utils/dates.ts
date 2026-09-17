@@ -26,3 +26,9 @@ export function formatTime(iso: string) {
     minute: '2-digit',
   });
 }
+
+export function formatDate(isoDate: string) {
+  return new Date(`${isoDate}T12:00:00-05:00`).toLocaleDateString('es-PE', {
+    timeZone: LIMA_TIME_ZONE,
+  });
+}

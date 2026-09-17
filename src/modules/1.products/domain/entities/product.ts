@@ -5,6 +5,7 @@ export type Product = {
   barcode: string | null;
   name: string;
   sale_price: number;
+  min_stock: number;
   is_active: boolean;
 };
 
@@ -14,5 +15,6 @@ export type ProductInput = {
   sale_price: number;
   sku?: string | null;
   barcode?: string | null;
+  min_stock?: number;
   is_active?: boolean;
 };
