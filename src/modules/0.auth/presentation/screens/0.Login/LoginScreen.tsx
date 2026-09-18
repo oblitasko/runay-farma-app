@@ -7,21 +7,15 @@ import { colors, fontSize, radius, space } from '@/src/modules/_shared/theme';
 import { useAuthStore } from '../../../domain/usecases';
 
 export function LoginScreen() {
-  const { onSignIn, onSignUp, loading, error, clearError } = useAuthStore();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const { onSignIn, loading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const configured = isSupabaseConfigured();
 
   const submit = async () => {
     clearError();
     try {
-      if (mode === 'login') {
-        await onSignIn(email, password);
-        return;
-      }
-      await onSignUp(email, password, fullName);
+      await onSignIn(email, password);
     } catch {
       // El error ya vive en el store.
     }
@@ -45,15 +39,9 @@ export function LoginScreen() {
 
           <View style={styles.sheet}>
             <View style={styles.form}>
-              <Text style={styles.modeTitle}>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
+              <Text style={styles.modeTitle}>Iniciar sesión</Text>
 
               {!configured ? <ConfigBanner /> : null}
-
-              {mode === 'register' ? (
-                <View style={styles.field}>
-                  <InputComponent label="Nombre" value={fullName} onChangeText={setFullName} autoCapitalize="words" />
-                </View>
-              ) : null}
 
               <View style={styles.field}>
                 <InputComponent
@@ -71,22 +59,11 @@ export function LoginScreen() {
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
               <ButtonComponent
-                label={mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+                label="Entrar"
                 onPress={submit}
                 loading={loading.status === 'loading'}
                 disabled={!configured}
               />
-
-              <View style={styles.switchMode}>
-                <ButtonComponent
-                  variant="ghost"
-                  label={mode === 'login' ? 'Crear una cuenta' : 'Ya tengo cuenta'}
-                  onPress={() => {
-                    clearError();
-                    setMode(mode === 'login' ? 'register' : 'login');
-                  }}
-                />
-              </View>
             </View>
           </View>
         </ScrollView>
@@ -106,13 +83,6 @@ const styles = StyleSheet.create({
     paddingBottom: space.xxl,
   },
   logo: { height: 120, width: 220 },
-  brand: {
-    marginTop: space.md,
-    fontSize: fontSize.hero,
-    fontWeight: '700',
-    letterSpacing: 6,
-    color: colors.white,
-  },
   tagline: {
     marginTop: space.xs,
     fontSize: fontSize.sm,
@@ -138,5 +108,4 @@ const styles = StyleSheet.create({
   field: { marginBottom: space.md },
   password: { marginBottom: space.lg },
   error: { marginBottom: space.md, fontSize: fontSize.sm, color: colors.danger },
-  switchMode: { marginTop: space.sm },
 });

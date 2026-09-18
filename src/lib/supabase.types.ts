@@ -79,6 +79,8 @@ export type Database = {
           store_id: string | null;
           role: UserRole;
           full_name: string;
+          email: string | null;
+          is_active: boolean;
           created_at: string;
         };
         Insert: {
@@ -88,9 +90,16 @@ export type Database = {
           store_id?: string | null;
           role: UserRole;
           full_name: string;
+          email?: string | null;
+          is_active?: boolean;
           created_at?: string;
         };
-        Update: { full_name?: string; role?: UserRole; store_id?: string | null };
+        Update: {
+          full_name?: string;
+          store_id?: string | null;
+          email?: string | null;
+          is_active?: boolean;
+        };
       };
       products: {
         Row: {

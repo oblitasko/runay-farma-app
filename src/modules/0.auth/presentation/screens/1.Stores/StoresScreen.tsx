@@ -7,13 +7,10 @@ import { useAuthStore } from '../../../domain/usecases';
 export function StoresScreen() {
   const profile = useAuthStore((state) => state.profile);
   const stores = useAuthStore((state) => state.stores);
-  const staff = useAuthStore((state) => state.staff);
   const activeStoreId = useAuthStore((state) => state.activeStoreId);
   const onLoadStores = useAuthStore((state) => state.onLoadStores);
   const onCreateStore = useAuthStore((state) => state.onCreateStore);
   const onSetActiveStore = useAuthStore((state) => state.onSetActiveStore);
-  const onLoadStaff = useAuthStore((state) => state.onLoadStaff);
-  const onAssignStaffStore = useAuthStore((state) => state.onAssignStaffStore);
   const isOwner = profile?.role === 'owner';
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -22,8 +19,7 @@ export function StoresScreen() {
   useEffect(() => {
     if (!isOwner) return;
     void onLoadStores();
-    void onLoadStaff();
-  }, [isOwner, onLoadStores, onLoadStaff]);
+  }, [isOwner, onLoadStores]);
 
   const create = async () => {
     if (!name.trim()) {
@@ -65,32 +61,6 @@ export function StoresScreen() {
         data={stores}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyState title="Sin locales" description="Crea el primer local." />}
-        ListFooterComponent={
-          staff.length ? (
-            <View style={styles.staffBlock}>
-              <Text style={styles.section}>Cajeros</Text>
-              {staff.map((member) => (
-                <View key={member.id} style={styles.staffCard}>
-                  <Text style={styles.name}>{member.full_name}</Text>
-                  <View style={styles.chips}>
-                    {stores.map((store) => {
-                      const selected = member.store_id === store.id;
-                      return (
-                        <Pressable
-                          key={store.id}
-                          style={[styles.chip, selected ? styles.chipOn : styles.chipOff]}
-                          onPress={() => void onAssignStaffStore(member.id, store.id)}
-                        >
-                          <Text style={selected ? styles.chipOnText : styles.chipOffText}>{store.name}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : null
-        }
         renderItem={({ item }) => {
           const active = item.id === activeStoreId;
           return (
@@ -122,19 +92,4 @@ const styles = StyleSheet.create({
   cardActive: { borderColor: colors.brand, backgroundColor: colors.brandLight },
   name: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
   meta: { fontSize: fontSize.xs, color: colors.textMuted },
-  staffBlock: { marginTop: space.xl, paddingBottom: space.xxl },
-  section: { marginBottom: space.md, fontWeight: '700', color: colors.text },
-  staffCard: {
-    marginBottom: space.sm,
-    borderRadius: radius.lg,
-    backgroundColor: colors.card,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
-  },
-  chips: { marginTop: space.sm, flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  chip: { borderRadius: radius.full, paddingHorizontal: space.md, paddingVertical: 4 },
-  chipOn: { backgroundColor: colors.brand },
-  chipOff: { backgroundColor: '#F1F5F9' },
-  chipOnText: { color: colors.white },
-  chipOffText: { color: '#334155' },
 });

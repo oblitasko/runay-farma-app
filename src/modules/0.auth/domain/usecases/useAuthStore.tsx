@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { create } from 'zustand';
 import type { LoadingStatusProps } from '@/src/modules/_shared/domain/entities';
 import { AuthPort } from '../../ports';
-import type { Profile, Store, StoreInput } from '../entities';
+import type { CashierInput, Profile, Store, StoreInput } from '../entities';
 
 const ACTIVE_STORE_KEY = 'runay.farma.activeStoreId';
 
@@ -18,22 +18,28 @@ type AuthState = {
   error: string | null;
   onInit: () => Promise<void>;
   onSignIn: (email: string, password: string) => Promise<void>;
-  onSignUp: (email: string, password: string, fullName: string) => Promise<void>;
   onSignOut: () => Promise<void>;
   onSetActiveStore: (storeId: string) => Promise<void>;
   onLoadStores: () => Promise<void>;
   onCreateStore: (name: string) => Promise<Store>;
   onUpdateStore: (storeId: string, input: StoreInput) => Promise<void>;
   onLoadStaff: () => Promise<void>;
+  onCreateCashier: (input: CashierInput) => Promise<void>;
   onAssignStaffStore: (profileId: string, storeId: string) => Promise<void>;
+  onSetStaffActive: (profileId: string, isActive: boolean) => Promise<void>;
   clearError: () => void;
 };
 
 let authListenerAttached = false;
 
-async function loadProfile(session: Session | null): Promise<Profile | null> {
+async function loadActiveProfile(session: Session | null): Promise<Profile | null> {
   if (!session?.user.id) return null;
-  return AuthPort.getProfile(session.user.id);
+  const profile = await AuthPort.getProfile(session.user.id);
+  if (profile.is_active === false) {
+    await AuthPort.signOut();
+    throw new Error('Cuenta desactivada');
+  }
+  return profile;
 }
 
 async function resolveActiveStore(profile: Profile | null): Promise<{ stores: Store[]; activeStoreId: string | null }> {
@@ -63,18 +69,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: { status: 'loading' }, error: null });
     try {
       const session = await AuthPort.getSession();
-      const profile = await loadProfile(session);
+      const profile = await loadActiveProfile(session);
       const { stores, activeStoreId } = await resolveActiveStore(profile);
-      set({ session, profile, stores, activeStoreId, loading: { status: 'success' } });
+      set({ session: profile ? session : null, profile, stores, activeStoreId, loading: { status: 'success' } });
       if (!authListenerAttached) {
         authListenerAttached = true;
         AuthPort.onAuthStateChange(async (nextSession) => {
           try {
-            const nextProfile = await loadProfile(nextSession);
+            const nextProfile = await loadActiveProfile(nextSession);
             const next = await resolveActiveStore(nextProfile);
-            set({ session: nextSession, profile: nextProfile, stores: next.stores, activeStoreId: next.activeStoreId });
+            set({
+              session: nextProfile ? nextSession : null,
+              profile: nextProfile,
+              stores: next.stores,
+              activeStoreId: next.activeStoreId,
+            });
           } catch {
-            set({ session: nextSession, profile: null, stores: [], activeStoreId: null });
+            set({ session: null, profile: null, stores: [], activeStoreId: null });
           }
         });
       }
@@ -94,35 +105,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: { status: 'loading' }, error: null });
     try {
       const { session } = await AuthPort.signIn(email.trim(), password);
-      const profile = await loadProfile(session);
+      const profile = await loadActiveProfile(session);
       const { stores, activeStoreId } = await resolveActiveStore(profile);
       set({ session, profile, stores, activeStoreId, loading: { status: 'success' } });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'No se pudo iniciar sesión',
-        loading: { status: 'failed' },
-      });
-      throw error;
-    }
-  },
-
-  onSignUp: async (email, password, fullName) => {
-    set({ loading: { status: 'loading' }, error: null });
-    try {
-      const { session } = await AuthPort.signUp(email.trim(), password, fullName.trim());
-      if (!session) {
-        set({
-          loading: { status: 'success' },
-          error: 'Cuenta creada. Si el proyecto pide confirmación, revisa el correo y luego entra.',
-        });
-        return;
-      }
-      const profile = await loadProfile(session);
-      const { stores, activeStoreId } = await resolveActiveStore(profile);
-      set({ session, profile, stores, activeStoreId, loading: { status: 'success' } });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'No se pudo crear la cuenta',
         loading: { status: 'failed' },
       });
       throw error;
@@ -183,8 +171,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ staff });
   },
 
+  onCreateCashier: async (input) => {
+    const { profile } = get();
+    if (!profile || profile.role !== 'owner') throw new Error('Solo el dueño puede crear cajeros');
+    const created = await AuthPort.createCashier(input);
+    set({ staff: [...get().staff, created].sort((a, b) => a.full_name.localeCompare(b.full_name, 'es')) });
+  },
+
   onAssignStaffStore: async (profileId, storeId) => {
     const staffMember = await AuthPort.assignStaffStore(profileId, storeId);
+    set({ staff: get().staff.map((item) => (item.id === profileId ? staffMember : item)) });
+  },
+
+  onSetStaffActive: async (profileId, isActive) => {
+    const staffMember = await AuthPort.setStaffActive(profileId, isActive);
     set({ staff: get().staff.map((item) => (item.id === profileId ? staffMember : item)) });
   },
 

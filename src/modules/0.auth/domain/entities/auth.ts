@@ -7,6 +7,15 @@ export type Profile = {
   store_id: string | null;
   role: UserRole;
   full_name: string;
+  email: string | null;
+  is_active: boolean;
+};
+
+export type CashierInput = {
+  full_name: string;
+  email: string;
+  password: string;
+  store_id: string;
 };
 
 export type Store = {

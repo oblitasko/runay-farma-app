@@ -39,6 +39,14 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
     ownerOnly: true,
   },
   {
+    name: 'usuarios',
+    href: '/(app)/usuarios',
+    match: '/usuarios',
+    label: 'Cajeros',
+    icon: 'people-outline',
+    ownerOnly: true,
+  },
+  {
     name: 'configuracion',
     href: '/(app)/configuracion',
     match: '/configuracion',

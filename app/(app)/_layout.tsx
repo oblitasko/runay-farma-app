@@ -54,6 +54,7 @@ export default function AppLayout() {
         <Tabs.Screen name="estadisticas/index" options={{ href: null, title: 'Estadísticas' }} />
         <Tabs.Screen name="reposicion/index" options={{ href: null, title: 'Reposición' }} />
         <Tabs.Screen name="sucursales/index" options={{ href: null, title: 'Sucursales' }} />
+        <Tabs.Screen name="usuarios/index" options={{ href: null, title: 'Cajeros' }} />
         <Tabs.Screen name="configuracion/index" options={{ href: null, title: 'Configuración' }} />
         <Tabs.Screen name="factura" options={{ href: null, title: 'Comprobante' }} />
       </Tabs>
