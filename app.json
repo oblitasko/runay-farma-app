@@ -8,11 +8,6 @@
     "scheme": "runayfarma",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ff0434"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.runayfarma.app"
@@ -42,7 +37,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#ff0434",
-          "image": "./assets/logo-app.png",
+          "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
           "imageWidth": 210
         }
