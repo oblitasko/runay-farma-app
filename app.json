@@ -10,8 +10,8 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#F93B2A"
+      "resizeMode": "contain",
+      "backgroundColor": "#ff0434"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F93B2A"
+        "backgroundColor": "#ff0434"
       },
       "package": "com.runayfarma.app",
       "edgeToEdgeEnabled": true,
@@ -41,15 +41,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F93B2A",
-          "image": "./assets/splash.png",
-          "resizeMode": "cover",
-          "enableFullScreenImage_legacy": true,
-          "android": {
-            "image": "./assets/icon.png",
-            "backgroundColor": "#F93B2A",
-            "imageWidth": 200
-          }
+          "backgroundColor": "#ff0434",
+          "image": "./assets/logo-app.png",
+          "resizeMode": "contain",
+          "imageWidth": 210
         }
       ],
       "expo-status-bar",
