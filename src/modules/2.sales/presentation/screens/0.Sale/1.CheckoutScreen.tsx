@@ -73,10 +73,13 @@ export function CheckoutScreen() {
       <ScreenHeader title="Cobro" subtitle={`Total ${formatPen(total)}`} />
       {cart.map((item) => (
         <View key={item.productId} style={styles.line}>
-          <Text style={styles.lineText}>
-            {item.quantity} × {item.name}
-          </Text>
-          <Text style={styles.strong}>{formatPen(item.unitPrice * item.quantity)}</Text>
+          <Text style={styles.lineText}>{item.name}</Text>
+          <View style={styles.lineFoot}>
+            <Text style={styles.lineMeta}>
+              {item.quantity} × {formatPen(item.unitPrice)}
+            </Text>
+            <Text style={styles.strong}>{formatPen(item.unitPrice * item.quantity)}</Text>
+          </View>
         </View>
       ))}
 
@@ -167,15 +170,20 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: space.lg, paddingVertical: space.lg },
   line: {
     marginBottom: space.sm,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     borderRadius: radius.md,
     backgroundColor: colors.card,
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
   },
   lineText: { color: colors.text },
-  strong: { fontWeight: '600' },
+  lineFoot: {
+    marginTop: space.xs,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  lineMeta: { fontSize: fontSize.sm, color: colors.textMuted },
+  strong: { fontWeight: '600', flexShrink: 0 },
   section: { marginBottom: space.sm, marginTop: space.lg, fontWeight: '600', color: colors.text },
   card: { marginBottom: space.md, borderRadius: radius.lg, backgroundColor: colors.card, padding: space.lg },
   cashCard: { marginTop: space.md },
